@@ -1,15 +1,16 @@
-import { UserRoles } from './../enumType';
+import { UserRoles } from "./../enumType";
 import {
   LoginResponse,
+  MeResponse,
   RegisterResponse,
   UserLoginInput,
   UserRegisterInput,
-} from './../types/user';
-import { sendRefreshToken } from './../sendRefreshToken';
-import { isAuth } from './../middleware/auth';
-import { accessToken } from './../token';
-import { MovieContext } from './../MovieContext';
-import { User } from './../entity/User';
+} from "./../types/user";
+import { sendRefreshToken } from "./../sendRefreshToken";
+import { isAuth } from "./../middleware/auth";
+import { accessToken } from "./../token";
+import { MovieContext } from "./../MovieContext";
+import { User } from "./../entity/User";
 import {
   Arg,
   Mutation,
@@ -17,22 +18,27 @@ import {
   Resolver,
   Ctx,
   UseMiddleware,
-} from 'type-graphql';
-import { compare, hash } from 'bcryptjs';
-import { validate } from 'class-validator';
-import { getManager } from 'typeorm';
+} from "type-graphql";
+import { compare, hash } from "bcryptjs";
+import { validate } from "class-validator";
+import { getManager } from "typeorm";
 
 @Resolver()
 export class userResolvers {
-  @Query(() => String)
+  @Query(() => User)
   @UseMiddleware(isAuth)
-  hello() {
-    return 'hi';
+  me(@Ctx() { payload }: MovieContext): MeResponse {
+    return {
+      id: payload?.id,
+      username: payload?.username,
+      email: payload?.email,
+      role: payload?.role,
+    };
   }
 
   @Mutation(() => RegisterResponse)
   async register(
-    @Arg('options') options: UserRegisterInput
+    @Arg("options") options: UserRegisterInput
   ): Promise<RegisterResponse> {
     const hashedPassword = await hash(options.password, 12);
 
@@ -62,14 +68,14 @@ export class userResolvers {
     } catch (err) {
       const { code } = err;
 
-      if (code === '23505') {
-        const start = err.detail.indexOf('(');
-        const end = err.detail.indexOf(')');
+      if (code === "23505") {
+        const start = err.detail.indexOf("(");
+        const end = err.detail.indexOf(")");
         return {
           errors: [
             {
               field: err.detail.substring(start + 1, end),
-              message: 'Duplicated Key',
+              message: "Already exist!",
             },
           ],
         };
@@ -82,7 +88,7 @@ export class userResolvers {
 
   @Mutation(() => LoginResponse)
   async login(
-    @Arg('options') options: UserLoginInput,
+    @Arg("options") options: UserLoginInput,
     @Ctx() { res }: MovieContext
   ): Promise<LoginResponse> {
     const user = await User.findOne({ where: { username: options.username } });
@@ -91,8 +97,8 @@ export class userResolvers {
       return {
         errors: [
           {
-            field: 'username',
-            message: 'User not exist',
+            field: "username",
+            message: "User not exist",
           },
         ],
       };
@@ -104,8 +110,8 @@ export class userResolvers {
       return {
         errors: [
           {
-            field: 'password',
-            message: 'Invalid password',
+            field: "password",
+            message: "Invalid password",
           },
         ],
       };

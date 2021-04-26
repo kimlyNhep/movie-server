@@ -1,6 +1,6 @@
-import { Response } from 'express';
+import { Response } from "express";
 
 export const sendRefreshToken = (res: Response, token: string) =>
-  res.cookie('jid', token, {
+  res.cookie("token", token, {
     httpOnly: true,
   });

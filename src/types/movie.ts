@@ -1,3 +1,4 @@
+import { ErrorResponse } from '../types/error';
 import { MovieType, StatusType } from './../enumType';
 import {
   Field,
@@ -14,23 +15,13 @@ registerEnumType(MovieType, {
 registerEnumType(StatusType, {
   name: 'StatusType',
 });
-
-@ObjectType()
-class MovieErrorResponse {
-  @Field(() => String, { nullable: true })
-  field?: string;
-
-  @Field(() => String, { nullable: true })
-  message?: string;
-}
-
 @ObjectType()
 export class MovieResponse {
   @Field(() => String, { nullable: true })
   message?: string;
 
-  @Field(() => [MovieErrorResponse], { nullable: true })
-  errors?: MovieErrorResponse[];
+  @Field(() => [ErrorResponse], { nullable: true })
+  errors?: ErrorResponse[];
 }
 
 @InputType()
