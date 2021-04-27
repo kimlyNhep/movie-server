@@ -111,7 +111,7 @@ export class userResolvers {
         errors: [
           {
             field: "password",
-            message: "Invalid password",
+            message: "is Not Correct.",
           },
         ],
       };
@@ -121,6 +121,7 @@ export class userResolvers {
 
     return {
       accessToken: accessToken(user),
+      user,
     };
   }
 }
