@@ -1,6 +1,12 @@
-import { verify } from "jsonwebtoken";
+import { UserRoles } from "../enumType";
+import { User } from "../entity/User";
+import { verify, decode } from "jsonwebtoken";
 import { MovieContext } from "src/MovieContext";
 import { MiddlewareFn } from "type-graphql";
+
+interface IToken {
+  id?: string;
+}
 
 export const isAuth: MiddlewareFn<MovieContext> = ({ context }, next) => {
   const authorization = context.req.headers["authorization"];
@@ -16,4 +22,30 @@ export const isAuth: MiddlewareFn<MovieContext> = ({ context }, next) => {
   }
 
   return next();
+};
+
+export const isAdmin: MiddlewareFn<MovieContext> = async (
+  { context },
+  next
+) => {
+  const { token } = context.req.cookies;
+  const { id } = <IToken>decode(token);
+
+  const user = await User.findOne({ where: { id } });
+  if (user?.role !== UserRoles.ADMIN)
+    throw new Error("You do not have a permission");
+  else return next();
+};
+
+export const isMember: MiddlewareFn<MovieContext> = async (
+  { context },
+  next
+) => {
+  const { token } = context.req.cookies;
+  const { id } = <IToken>decode(token);
+
+  const user = await User.findOne({ where: { id } });
+  if (user?.role !== UserRoles.MEMBER)
+    throw new Error("You do not have a permission");
+  else return next();
 };

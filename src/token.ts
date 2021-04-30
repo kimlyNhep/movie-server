@@ -5,13 +5,10 @@ export const accessToken = (user: User) => {
   return sign(
     {
       id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
     },
     process.env.ACCESS_TOKEN_SECRET!,
     {
-      expiresIn: "15m",
+      expiresIn: "1d",
     }
   );
 };

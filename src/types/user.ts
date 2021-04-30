@@ -21,17 +21,8 @@ export class LoginResponse {
 
 @ObjectType()
 export class MeResponse {
-  @Field(() => String, { nullable: true })
-  id?: string;
-
-  @Field(() => String, { nullable: true })
-  email?: string;
-
-  @Field(() => String, { nullable: true })
-  username?: string;
-
-  @Field(() => UserRoles)
-  role?: UserRoles;
+  @Field(() => User, { nullable: true })
+  user?: User;
 }
 
 @InputType()

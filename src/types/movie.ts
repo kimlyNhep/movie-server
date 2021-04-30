@@ -1,19 +1,19 @@
-import { ErrorResponse } from '../types/error';
-import { MovieType, StatusType } from './../enumType';
+import { ErrorResponse } from "../types/error";
+import { MovieType, StatusType } from "./../enumType";
 import {
   Field,
   InputType,
   ObjectType,
   Int,
   registerEnumType,
-} from 'type-graphql';
+} from "type-graphql";
 
 registerEnumType(MovieType, {
-  name: 'MovieType',
+  name: "MovieType",
 });
 
 registerEnumType(StatusType, {
-  name: 'StatusType',
+  name: "StatusType",
 });
 @ObjectType()
 export class MovieResponse {
@@ -35,9 +35,6 @@ export class CreateMovieInput {
   @Field(() => String, { nullable: true })
   photo?: string;
 
-  @Field(() => String)
-  creator: string;
-
   @Field(() => [String])
   genres: string[];
 }
@@ -50,14 +47,14 @@ export class CreateMovieInformationInput {
   @Field(() => String, { nullable: true })
   producer?: string;
 
-  @Field(() => Int)
-  episode: number;
+  @Field(() => Int, { nullable: true })
+  episode?: number;
 
   @Field(() => StatusType)
   status: StatusType;
 
-  @Field(() => Int)
-  duration: number;
+  @Field(() => Int, { nullable: true })
+  duration?: number;
 
   @Field(() => String, { nullable: true })
   released_date?: Date;

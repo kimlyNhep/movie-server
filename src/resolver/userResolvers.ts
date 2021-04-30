@@ -1,7 +1,6 @@
 import { UserRoles } from "./../enumType";
 import {
   LoginResponse,
-  MeResponse,
   RegisterResponse,
   UserLoginInput,
   UserRegisterInput,
@@ -25,15 +24,11 @@ import { getManager } from "typeorm";
 
 @Resolver()
 export class userResolvers {
-  @Query(() => User)
+  @Query(() => User, { nullable: true })
   @UseMiddleware(isAuth)
-  me(@Ctx() { payload }: MovieContext): MeResponse {
-    return {
-      id: payload?.id,
-      username: payload?.username,
-      email: payload?.email,
-      role: payload?.role,
-    };
+  async me(@Ctx() { payload }: MovieContext): Promise<User | undefined> {
+    const user = await User.findOne({ where: { id: payload?.id } });
+    return user;
   }
 
   @Mutation(() => RegisterResponse)
@@ -123,5 +118,13 @@ export class userResolvers {
       accessToken: accessToken(user),
       user,
     };
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Ctx() { req, res }: MovieContext) {
+    return new Promise((resolve) => {
+      res.clearCookie("token");
+      resolve(true);
+    });
   }
 }

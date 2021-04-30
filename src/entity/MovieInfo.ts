@@ -1,7 +1,7 @@
-import { Movie } from './Movie';
-import { MovieType, StatusType } from './../enumType';
-import { IsEnum } from 'class-validator';
-import { ObjectType, Field, Int } from 'type-graphql';
+import { Movie } from "./Movie";
+import { MovieType, StatusType } from "./../enumType";
+import { IsEnum } from "class-validator";
+import { ObjectType, Field, Int } from "type-graphql";
 import {
   BaseEntity,
   Column,
@@ -9,19 +9,19 @@ import {
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
-} from 'typeorm';
+} from "typeorm";
 
 @ObjectType()
 @Entity()
 export class MovieInfo extends BaseEntity {
   @Field(() => Int)
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: number;
 
   @Field()
-  @IsEnum(MovieType, { each: true, message: 'Invalid Movie Type!' })
+  @IsEnum(MovieType, { each: true, message: "Invalid Movie Type!" })
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: MovieType,
     nullable: false,
   })
@@ -32,21 +32,21 @@ export class MovieInfo extends BaseEntity {
   producer?: string;
 
   @Field(() => Int)
-  @Column()
-  episode: number;
+  @Column({ nullable: true })
+  episode?: number;
 
   @Field(() => StatusType)
-  @IsEnum(StatusType, { each: true, message: 'Invalid Status Type!' })
+  @IsEnum(StatusType, { each: true, message: "Invalid Status Type!" })
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: StatusType,
     nullable: false,
   })
   status: StatusType;
 
   @Field(() => Int)
-  @Column()
-  duration: number;
+  @Column({ nullable: true })
+  duration?: number;
 
   @Field(() => String, { nullable: true })
   @Column()
