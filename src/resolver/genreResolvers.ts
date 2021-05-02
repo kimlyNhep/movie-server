@@ -1,5 +1,5 @@
-import { isAuth } from './../middleware/auth';
-import { GenreResponse } from './../types/genre';
+import { isAuth, isAdmin } from './../middleware/auth';
+import { GenreResponse, GenresResponse } from './../types/genre';
 import { Genre } from './../entity/Genre';
 import { Arg, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql';
 import { validate } from 'class-validator';
@@ -8,7 +8,7 @@ import { getConnection, getManager } from 'typeorm';
 @Resolver()
 export class genreResolvers {
   @Mutation(() => GenreResponse)
-  @UseMiddleware(isAuth)
+  @UseMiddleware(isAuth, isAdmin)
   async createGenre(@Arg('name') name: string): Promise<GenreResponse> {
     const genre = new Genre();
     genre.name = name;
@@ -24,9 +24,9 @@ export class genreResolvers {
       };
     } else {
       try {
-        await getManager().save(genre);
+        const newGenre = await getManager().save(genre);
         return {
-          message: 'success',
+          genre: newGenre,
         };
       } catch (err) {
         const { code } = err;
@@ -50,9 +50,9 @@ export class genreResolvers {
     }
   }
 
-  @Query(() => GenreResponse)
+  @Query(() => GenresResponse)
   @UseMiddleware(isAuth)
-  async getGenres(): Promise<GenreResponse> {
+  async getGenres(): Promise<GenresResponse> {
     const genreQuery = await getConnection()
       .createQueryBuilder()
       .select('genres')

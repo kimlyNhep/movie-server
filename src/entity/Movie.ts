@@ -23,11 +23,11 @@ export class Movie extends BaseEntity {
   @Column({ unique: true })
   title: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   description?: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   photo?: string;
 

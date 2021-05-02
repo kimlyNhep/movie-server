@@ -31,7 +31,7 @@ export class MovieInfo extends BaseEntity {
   @Column({ nullable: true })
   producer?: string;
 
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
   episode?: number;
 
@@ -44,7 +44,7 @@ export class MovieInfo extends BaseEntity {
   })
   status: StatusType;
 
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
   duration?: number;
 

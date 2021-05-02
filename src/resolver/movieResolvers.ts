@@ -20,7 +20,7 @@ import {
   UseMiddleware,
 } from 'type-graphql';
 import { validate } from 'class-validator';
-import { getManager, getRepository } from 'typeorm';
+import { getManager, getRepository, getConnection } from 'typeorm';
 import { decode } from 'jsonwebtoken';
 
 interface IToken {
@@ -110,6 +110,7 @@ export class movieResolvers {
   }
 
   @Mutation(() => MovieInfoResponse)
+  @UseMiddleware(isAuth)
   async createMovieInformation(
     @Arg('options') options: CreateMovieInformationInput
   ): Promise<MovieInfoResponse> {
@@ -160,5 +161,31 @@ export class movieResolvers {
         ],
       };
     }
+  }
+
+  @Mutation(() => MovieResponse)
+  async getMovie(@Arg('id') id: string): Promise<MovieResponse> {
+    const movieQuery = await getConnection()
+      .createQueryBuilder()
+      .select('movie')
+      .from(Movie, 'movie')
+      .where('movie.id = :id', { id })
+      .innerJoinAndSelect('movie.creator', 'creator')
+      .getOne();
+
+    if (!movieQuery) {
+      return {
+        errors: [
+          {
+            field: 'id',
+            message: 'Movie not exist',
+          },
+        ],
+      };
+    }
+
+    return {
+      movie: movieQuery,
+    };
   }
 }
