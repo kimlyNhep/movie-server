@@ -1,15 +1,15 @@
-import { isAuth } from "./../middleware/auth";
-import { GenreResponse } from "./../types/genre";
-import { Genre } from "./../entity/Genre";
-import { Arg, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
-import { validate } from "class-validator";
-import { getConnection, getManager } from "typeorm";
+import { isAuth } from './../middleware/auth';
+import { GenreResponse } from './../types/genre';
+import { Genre } from './../entity/Genre';
+import { Arg, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql';
+import { validate } from 'class-validator';
+import { getConnection, getManager } from 'typeorm';
 
 @Resolver()
 export class genreResolvers {
   @Mutation(() => GenreResponse)
   @UseMiddleware(isAuth)
-  async createGenre(@Arg("name") name: string): Promise<GenreResponse> {
+  async createGenre(@Arg('name') name: string): Promise<GenreResponse> {
     const genre = new Genre();
     genre.name = name;
 
@@ -23,10 +23,30 @@ export class genreResolvers {
         }),
       };
     } else {
-      await getManager().save(genre);
-      return {
-        message: "success",
-      };
+      try {
+        await getManager().save(genre);
+        return {
+          message: 'success',
+        };
+      } catch (err) {
+        const { code } = err;
+
+        if (code === '23505') {
+          const start = err.detail.indexOf('(');
+          const end = err.detail.indexOf(')');
+          return {
+            errors: [
+              {
+                field: err.detail.substring(start + 1, end),
+                message: 'Already exist!',
+              },
+            ],
+          };
+        }
+        return {
+          errors: err,
+        };
+      }
     }
   }
 
@@ -35,8 +55,8 @@ export class genreResolvers {
   async getGenres(): Promise<GenreResponse> {
     const genreQuery = await getConnection()
       .createQueryBuilder()
-      .select("genres")
-      .from(Genre, "genres")
+      .select('genres')
+      .from(Genre, 'genres')
       .getMany();
 
     return {

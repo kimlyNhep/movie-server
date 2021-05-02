@@ -1,24 +1,36 @@
-import { ErrorResponse } from "../types/error";
-import { MovieType, StatusType } from "./../enumType";
+import { ErrorResponse } from '../types/error';
+import { MovieType, StatusType } from './../enumType';
 import {
   Field,
   InputType,
   ObjectType,
   Int,
   registerEnumType,
-} from "type-graphql";
+} from 'type-graphql';
+import { Stream } from 'stream';
+import { Movie } from '../entity/Movie';
+import { MovieInfo } from '../entity/MovieInfo';
 
 registerEnumType(MovieType, {
-  name: "MovieType",
+  name: 'MovieType',
 });
 
 registerEnumType(StatusType, {
-  name: "StatusType",
+  name: 'StatusType',
 });
 @ObjectType()
 export class MovieResponse {
-  @Field(() => String, { nullable: true })
-  message?: string;
+  @Field(() => Movie, { nullable: true })
+  movie?: Movie;
+
+  @Field(() => [ErrorResponse], { nullable: true })
+  errors?: ErrorResponse[];
+}
+
+@ObjectType()
+export class MovieInfoResponse {
+  @Field(() => MovieInfo, { nullable: true })
+  info?: MovieInfo;
 
   @Field(() => [ErrorResponse], { nullable: true })
   errors?: ErrorResponse[];
@@ -32,11 +44,23 @@ export class CreateMovieInput {
   @Field(() => String, { nullable: true })
   description?: string;
 
-  @Field(() => String, { nullable: true })
-  photo?: string;
-
   @Field(() => [String])
   genres: string[];
+}
+
+@InputType()
+export class UploadInput {
+  @Field()
+  filename: string;
+
+  @Field()
+  mimeType: string;
+
+  @Field()
+  encoding: string;
+
+  @Field(() => Stream)
+  createReadStream: () => Stream;
 }
 
 @InputType()
@@ -54,7 +78,7 @@ export class CreateMovieInformationInput {
   status: StatusType;
 
   @Field(() => Int, { nullable: true })
-  duration?: number;
+  durations?: number;
 
   @Field(() => String, { nullable: true })
   released_date?: Date;

@@ -1,7 +1,7 @@
-import { Genre } from "./Genre";
-import { MovieInfo } from "./MovieInfo";
-import { ObjectType, Field } from "type-graphql";
-import { User } from "./User";
+import { Genre } from './Genre';
+import { MovieInfo } from './MovieInfo';
+import { ObjectType, Field } from 'type-graphql';
+import { User } from './User';
 import {
   BaseEntity,
   Column,
@@ -10,14 +10,14 @@ import {
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
-} from "typeorm";
+} from 'typeorm';
 
 @ObjectType()
 @Entity()
 export class Movie extends BaseEntity {
   @Field()
-  @PrimaryGeneratedColumn("uuid")
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Field()
   @Column({ unique: true })

@@ -1,15 +1,16 @@
-import { Upload } from "./../utils/upload";
-import { isAuth } from "./../middleware/auth";
-import { MovieContext } from "src/MovieContext";
-import { MovieInfo } from "./../entity/MovieInfo";
-import { Genre } from "./../entity/Genre";
-import { User } from "./../entity/User";
-import { Movie } from "./../entity/Movie";
+import { createWriteStream } from 'fs';
+import { isAuth } from './../middleware/auth';
+import { MovieContext } from 'src/MovieContext';
+import { MovieInfo } from './../entity/MovieInfo';
+import { Genre } from './../entity/Genre';
+import { User } from './../entity/User';
+import { Movie } from './../entity/Movie';
 import {
   MovieResponse,
   CreateMovieInput,
   CreateMovieInformationInput,
-} from "./../types/movie";
+  MovieInfoResponse,
+} from './../types/movie';
 import {
   Arg,
   Ctx,
@@ -17,12 +18,10 @@ import {
   Query,
   Resolver,
   UseMiddleware,
-} from "type-graphql";
-import { validate } from "class-validator";
-import { getManager, getRepository } from "typeorm";
-import { decode } from "jsonwebtoken";
-import { createWriteStream } from "fs";
-import path from "path";
+} from 'type-graphql';
+import { validate } from 'class-validator';
+import { getManager, getRepository } from 'typeorm';
+import { decode } from 'jsonwebtoken';
 
 interface IToken {
   id?: string;
@@ -41,7 +40,7 @@ export class movieResolvers {
   @UseMiddleware(isAuth)
   async createMovie(
     @Ctx() { req }: MovieContext,
-    @Arg("options") options: CreateMovieInput
+    @Arg('options') options: CreateMovieInput
   ): Promise<MovieResponse> {
     const { token } = req.cookies;
     const { id } = <IToken>decode(token);
@@ -49,10 +48,9 @@ export class movieResolvers {
 
     if (!user) {
       return {
-        message: "fail",
         errors: [
           {
-            message: "User not exist",
+            message: 'User not exist',
           },
         ],
       };
@@ -61,10 +59,9 @@ export class movieResolvers {
     const genres = await getRepository(Genre).findByIds(options.genres);
     if (genres.length < options.genres.length)
       return {
-        message: "fail",
         errors: [
           {
-            message: "Genre not exist",
+            message: 'Genre not exist',
           },
         ],
       };
@@ -72,7 +69,6 @@ export class movieResolvers {
     const movie = new Movie();
     movie.title = options.title;
     movie.description = options.description;
-    movie.photo = options.photo;
     movie.creator = user;
     movie.genres = genres;
 
@@ -89,19 +85,19 @@ export class movieResolvers {
       try {
         await getManager().save(movie);
         return {
-          message: "success",
+          movie,
         };
       } catch (err) {
         const { code } = err;
 
-        if (code === "23505") {
-          const start = err.detail.indexOf("(");
-          const end = err.detail.indexOf(")");
+        if (code === '23505') {
+          const start = err.detail.indexOf('(');
+          const end = err.detail.indexOf(')');
           return {
             errors: [
               {
                 field: err.detail.substring(start + 1, end),
-                message: "Already exist!",
+                message: 'Already exist!',
               },
             ],
           };
@@ -113,18 +109,17 @@ export class movieResolvers {
     }
   }
 
-  @Mutation(() => MovieResponse)
+  @Mutation(() => MovieInfoResponse)
   async createMovieInformation(
-    @Arg("options") options: CreateMovieInformationInput
-  ): Promise<MovieResponse> {
+    @Arg('options') options: CreateMovieInformationInput
+  ): Promise<MovieInfoResponse> {
     const movie = await Movie.findOne({ where: { id: options.movie } });
 
     if (!movie) {
       return {
-        message: "fail",
         errors: [
           {
-            message: "Movie not exist",
+            message: 'Movie not exist',
           },
         ],
       };
@@ -134,7 +129,7 @@ export class movieResolvers {
     movieInfo.type = options.type;
     movieInfo.producer = options.producer;
     movieInfo.episode = options.episode;
-    movieInfo.duration = options.duration;
+    movieInfo.duration = options.durations;
     movieInfo.status = options.status;
     movieInfo.released_date = options.released_date;
     movieInfo.movie = movie;
@@ -152,25 +147,18 @@ export class movieResolvers {
       } else {
         await getRepository(MovieInfo).save(movieInfo);
         return {
-          message: "success",
+          info: movieInfo,
         };
       }
     } catch (err) {
       console.log(err);
       return {
-        message: "fail",
+        errors: [
+          {
+            message: 'fail',
+          },
+        ],
       };
     }
-  }
-
-  @Mutation(() => Boolean)
-  async addMoviePhoto(
-    @Arg("photo", () => Upload)
-    { createReadStream, filename, mimeType, encoding }: Upload
-  ): Promise<boolean> {
-    const stream = createReadStream();
-    const pathName = path.join(__dirname, `../images/${filename}`);
-    stream.pipe(createWriteStream(pathName));
-    return true;
   }
 }
