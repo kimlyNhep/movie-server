@@ -1,5 +1,4 @@
 import { getManager } from 'typeorm';
-import { getConnection } from 'typeorm';
 import { ErrorResponse } from '../types/error';
 import { ObjectType } from 'type-graphql';
 import { Movie } from './../entity/Movie';
@@ -50,11 +49,11 @@ export class uploadResolver {
 
     const { createReadStream, filename } = photo;
     createReadStream().pipe(
-      createWriteStream(__dirname + `/../images/${filename}`)
+      createWriteStream(__dirname + `/../../public/images/${filename}`)
     );
 
     // add photo url to database
-    movie.photo = `http:localhost:8000/graphql/images/${filename}`;
+    movie.photo = `http://localhost:8000/images/${filename}`;
 
     try {
       await getManager().save(movie);
@@ -79,7 +78,7 @@ export class uploadResolver {
     }
 
     return {
-      imageUrl: `http:localhost:8000/graphql/images/${filename}`,
+      imageUrl: `http://localhost:8000/images/${filename}`,
     };
   }
 }

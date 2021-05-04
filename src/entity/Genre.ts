@@ -20,6 +20,7 @@ export class Genre extends BaseEntity {
   @Column({ unique: true })
   name: string;
 
+  @Field(() => [Movie], { nullable: true })
   @ManyToMany(() => Movie, (movie) => movie.genres, { nullable: true })
   @JoinTable({ name: 'genres_movies' })
   movies?: Movie[];

@@ -42,6 +42,7 @@ export class Movie extends BaseEntity {
   @OneToOne(() => MovieInfo, (info) => info.movie)
   info?: MovieInfo;
 
+  @Field(() => [Genre])
   @ManyToMany(() => Genre, (genre) => genre.movies)
   genres: Genre[];
 }

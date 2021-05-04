@@ -1,8 +1,7 @@
 import 'reflect-metadata';
-import { uploadResolver } from './resolver/uploadResolvers';
-import { movieResolvers } from './resolver/movieResolvers';
-import express from 'express';
 import dotenv from 'dotenv';
+import express from 'express';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { accessToken } from './token';
 import { User } from './entity/User';
@@ -11,11 +10,12 @@ import { MovieContext } from './MovieContext';
 import { createConnection } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
-import { genreResolvers } from './resolver/genreResolvers';
-import { userResolvers } from './resolver/userResolvers';
 import { sendRefreshToken } from './sendRefreshToken';
 import { graphqlUploadExpress } from 'graphql-upload';
-import cors from 'cors';
+import { uploadResolver } from './resolver/uploadResolvers';
+import { genreResolvers } from './resolver/genreResolvers';
+import { userResolvers } from './resolver/userResolvers';
+import { movieResolvers } from './resolver/movieResolvers';
 
 (async () => {
   dotenv.config();
@@ -29,6 +29,8 @@ import cors from 'cors';
       maxFiles: 20,
     })
   );
+  app.use(express.static('public'));
+  app.use('/images', express.static('images'));
   app.get('/', (_req, res) => res.send('Hello'));
 
   app.post('/refresh_token', async (req, res) => {

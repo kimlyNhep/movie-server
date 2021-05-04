@@ -1,4 +1,3 @@
-import { createWriteStream } from 'fs';
 import { isAuth } from './../middleware/auth';
 import { MovieContext } from 'src/MovieContext';
 import { MovieInfo } from './../entity/MovieInfo';
@@ -10,6 +9,7 @@ import {
   CreateMovieInput,
   CreateMovieInformationInput,
   MovieInfoResponse,
+  MoviesResponse,
 } from './../types/movie';
 import {
   Arg,
@@ -20,7 +20,7 @@ import {
   UseMiddleware,
 } from 'type-graphql';
 import { validate } from 'class-validator';
-import { getManager, getRepository, getConnection } from 'typeorm';
+import { getRepository, getConnection } from 'typeorm';
 import { decode } from 'jsonwebtoken';
 
 interface IToken {
@@ -83,7 +83,7 @@ export class movieResolvers {
       };
     } else {
       try {
-        await getManager().save(movie);
+        await getConnection().manager.save(movie);
         return {
           movie,
         };
@@ -163,7 +163,7 @@ export class movieResolvers {
     }
   }
 
-  @Mutation(() => MovieResponse)
+  @Query(() => MovieResponse)
   async getMovie(@Arg('id') id: string): Promise<MovieResponse> {
     const movieQuery = await getConnection()
       .createQueryBuilder()
@@ -171,6 +171,8 @@ export class movieResolvers {
       .from(Movie, 'movie')
       .where('movie.id = :id', { id })
       .innerJoinAndSelect('movie.creator', 'creator')
+      .innerJoinAndSelect('movie.genres', 'genres')
+      .leftJoinAndSelect('movie.info', 'info')
       .getOne();
 
     if (!movieQuery) {
@@ -186,6 +188,22 @@ export class movieResolvers {
 
     return {
       movie: movieQuery,
+    };
+  }
+
+  @Query(() => MoviesResponse)
+  async getMovies(): Promise<MoviesResponse> {
+    const moviesQuery = await getConnection()
+      .createQueryBuilder()
+      .select('movie')
+      .from(Movie, 'movie')
+      .innerJoinAndSelect('movie.creator', 'creator')
+      .innerJoinAndSelect('movie.genres', 'genres')
+      .leftJoinAndSelect('movie.info', 'info')
+      .getMany();
+
+    return {
+      movies: moviesQuery,
     };
   }
 }

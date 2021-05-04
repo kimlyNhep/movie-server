@@ -28,6 +28,15 @@ export class MovieResponse {
 }
 
 @ObjectType()
+export class MoviesResponse {
+  @Field(() => [Movie], { nullable: true })
+  movies?: Movie[];
+
+  @Field(() => [ErrorResponse], { nullable: true })
+  errors?: ErrorResponse[];
+}
+
+@ObjectType()
 export class MovieInfoResponse {
   @Field(() => MovieInfo, { nullable: true })
   info?: MovieInfo;

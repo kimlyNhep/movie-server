@@ -35,7 +35,7 @@ export class MovieInfo extends BaseEntity {
   @Column({ nullable: true })
   episode?: number;
 
-  @Field(() => StatusType)
+  @Field()
   @IsEnum(StatusType, { each: true, message: 'Invalid Status Type!' })
   @Column({
     type: 'enum',
@@ -44,11 +44,11 @@ export class MovieInfo extends BaseEntity {
   })
   status: StatusType;
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Number, { nullable: true })
   @Column({ nullable: true })
   duration?: number;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => Number, { nullable: true })
   @Column()
   released_date?: Date;
 
