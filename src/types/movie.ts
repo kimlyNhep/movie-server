@@ -90,7 +90,7 @@ export class CreateMovieInformationInput {
   durations?: number;
 
   @Field(() => String, { nullable: true })
-  released_date?: Date;
+  released_date?: String;
 
   @Field(() => String)
   movie: string;

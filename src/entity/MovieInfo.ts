@@ -48,9 +48,9 @@ export class MovieInfo extends BaseEntity {
   @Column({ nullable: true })
   duration?: number;
 
-  @Field(() => Number, { nullable: true })
-  @Column()
-  released_date?: Date;
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  released_date?: String;
 
   @Field(() => Movie)
   @OneToOne(() => Movie)
