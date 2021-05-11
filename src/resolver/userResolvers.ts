@@ -1,9 +1,11 @@
+import { GraphQLUpload, FileUpload } from 'graphql-upload';
 import { UserRoles } from './../enumType';
 import {
   LoginResponse,
   RegisterResponse,
   UserLoginInput,
   UserRegisterInput,
+  UsersResponse,
 } from './../types/user';
 import { sendRefreshToken } from './../sendRefreshToken';
 import { isAuth } from './../middleware/auth';
@@ -20,7 +22,8 @@ import {
 } from 'type-graphql';
 import { compare, hash } from 'bcryptjs';
 import { validate } from 'class-validator';
-import { getManager } from 'typeorm';
+import { getConnection, getManager } from 'typeorm';
+import { createWriteStream } from 'fs';
 
 @Resolver()
 export class userResolvers {
@@ -33,17 +36,24 @@ export class userResolvers {
 
   @Mutation(() => RegisterResponse)
   async register(
-    @Arg('options') options: UserRegisterInput
+    @Arg('options') options: UserRegisterInput,
+    @Arg('photo', () => GraphQLUpload, { nullable: true }) photo?: FileUpload
   ): Promise<RegisterResponse> {
     const hashedPassword = await hash(options.password, 12);
 
     try {
+      const { createReadStream, filename } = photo!;
+      createReadStream().pipe(
+        createWriteStream(__dirname + `/../../public/profile/${filename}`)
+      );
+
       const user = new User();
 
       user.email = options.email;
       user.username = options.username;
       user.role = options.role || UserRoles.MEMBER;
       user.password = hashedPassword;
+      user.photo = `http://localhost:8000/profile/${filename}`;
 
       const errors = await validate(user);
       if (errors.length > 0) {
@@ -126,5 +136,86 @@ export class userResolvers {
       res.clearCookie('token');
       resolve(true);
     });
+  }
+
+  @Mutation(() => RegisterResponse)
+  async createCharacter(
+    @Arg('options') options: UserRegisterInput,
+    @Arg('photo', () => GraphQLUpload) photo: FileUpload
+  ): Promise<RegisterResponse> {
+    const hashedPassword = await hash(options.password, 12);
+
+    try {
+      const { createReadStream, filename } = photo;
+      createReadStream().pipe(
+        createWriteStream(__dirname + `/../../public/profile/${filename}`)
+      );
+
+      const user = new User();
+
+      user.email = options.email;
+      user.username = options.username;
+      user.role = options.role || UserRoles.MEMBER;
+      user.password = hashedPassword;
+      user.photo = `http://localhost:8000/profile/${filename}`;
+
+      const errors = await validate(user);
+      if (errors.length > 0) {
+        return {
+          errors: errors.map((error) => {
+            const { constraints, property } = error;
+            const key = Object.keys(constraints!)[0];
+            return { field: property, message: constraints![key] };
+          }),
+        };
+      } else {
+        await getManager().save(user);
+        return {
+          user,
+        };
+      }
+    } catch (err) {
+      const { code } = err;
+
+      if (code === '23505') {
+        const start = err.detail.indexOf('(');
+        const end = err.detail.indexOf(')');
+        return {
+          errors: [
+            {
+              field: err.detail.substring(start + 1, end),
+              message: 'Already exist!',
+            },
+          ],
+        };
+      }
+      return {
+        errors: err,
+      };
+    }
+  }
+
+  @Query(() => UsersResponse)
+  async getAllCharacter(): Promise<UsersResponse> {
+    const users = await getConnection()
+      .createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .where('user.role = :role', { role: UserRoles.CHARACTER })
+      .getMany();
+
+    if (!users) {
+      return {
+        errors: [
+          {
+            message: "User doesn't exist",
+          },
+        ],
+      };
+    }
+
+    return {
+      users: users,
+    };
   }
 }

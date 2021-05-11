@@ -58,6 +58,21 @@ export class CreateMovieInput {
 }
 
 @InputType()
+export class UpdateMovieInput {
+  @Field()
+  id: string;
+
+  @Field()
+  title: string;
+
+  @Field(() => String, { nullable: true })
+  description?: string;
+
+  @Field(() => [String])
+  genres: string[];
+}
+
+@InputType()
 export class UploadInput {
   @Field()
   filename: string;
@@ -94,4 +109,49 @@ export class CreateMovieInformationInput {
 
   @Field(() => String)
   movie: string;
+
+  @Field(() => [String], { nullable: true })
+  characters?: string[];
+
+  @Field(() => String, { nullable: true })
+  synopsis?: string;
+
+  @Field(() => String, { nullable: true })
+  backgroundInfo?: string;
+}
+
+@InputType()
+export class UpdateMovieInformationInput {
+  @Field()
+  id: string;
+
+  @Field(() => MovieType)
+  type: MovieType;
+
+  @Field(() => String, { nullable: true })
+  producer?: string;
+
+  @Field(() => Int, { nullable: true })
+  episode?: number;
+
+  @Field(() => StatusType)
+  status: StatusType;
+
+  @Field(() => Int, { nullable: true })
+  durations?: number;
+
+  @Field(() => String, { nullable: true })
+  released_date?: String;
+
+  @Field(() => String)
+  movie: string;
+
+  @Field(() => [String], { nullable: true })
+  characters?: string[];
+
+  @Field(() => String, { nullable: true })
+  synopsis?: string;
+
+  @Field(() => String, { nullable: true })
+  backgroundInfo?: string;
 }

@@ -1,43 +1,55 @@
-import { Movie } from "./Movie";
-import { UserRoles } from "./../enumType";
-import { IsEmail, IsEnum } from "class-validator";
-import { Field, Int, ObjectType } from "type-graphql";
+import { Movie } from './Movie';
+import { MovieInfo } from './MovieInfo';
+import { UserRoles } from './../enumType';
+import { IsEmail, IsEnum } from 'class-validator';
+import { Field, ObjectType } from 'type-graphql';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
   OneToMany,
-} from "typeorm";
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 
 @ObjectType()
 @Entity()
 export class User extends BaseEntity {
   @Field()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Field()
-  @IsEmail({}, { message: "Invalid Email Format!" })
-  @Column("text", { nullable: false, unique: true })
+  @IsEmail({}, { message: 'Invalid Email Format!' })
+  @Column('text', { nullable: false, unique: true })
   email: string;
 
   @Field()
-  @Column("text", { nullable: false, unique: true })
+  @Column('text', { nullable: false, unique: true })
   username: string;
 
   @Field(() => String)
   @IsEnum(UserRoles, { each: true })
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: UserRoles,
   })
   role: UserRoles;
 
-  @Column("text")
+  @Column('text')
   password: string;
 
   @Field(() => [Movie])
   @OneToMany(() => Movie, (movie) => movie.creator)
   movies: Movie[];
+
+  @Field({ nullable: true })
+  @Column()
+  photo?: string;
+
+  @Field(() => [MovieInfo], { nullable: true })
+  @ManyToMany(() => MovieInfo, (info) => info.characters, { nullable: true })
+  @JoinTable({ name: 'movies_characters' })
+  actingMovies?: Movie[];
 }

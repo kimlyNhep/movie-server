@@ -7,9 +7,11 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from './User';
 
 @ObjectType()
 @Entity()
@@ -18,7 +20,7 @@ export class MovieInfo extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Field()
+  @Field(() => String)
   @IsEnum(MovieType, { each: true, message: 'Invalid Movie Type!' })
   @Column({
     type: 'enum',
@@ -35,7 +37,7 @@ export class MovieInfo extends BaseEntity {
   @Column({ nullable: true })
   episode?: number;
 
-  @Field()
+  @Field(() => String)
   @IsEnum(StatusType, { each: true, message: 'Invalid Status Type!' })
   @Column({
     type: 'enum',
@@ -43,6 +45,14 @@ export class MovieInfo extends BaseEntity {
     nullable: false,
   })
   status: StatusType;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  synopsis?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  backgroundInfo?: string;
 
   @Field(() => Number, { nullable: true })
   @Column({ nullable: true })
@@ -56,4 +66,10 @@ export class MovieInfo extends BaseEntity {
   @OneToOne(() => Movie)
   @JoinColumn()
   movie: Movie;
+
+  @Field(() => [User], { nullable: true })
+  @ManyToMany(() => User, (character) => character.actingMovies, {
+    nullable: true,
+  })
+  characters?: User[];
 }

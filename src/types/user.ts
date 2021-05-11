@@ -1,10 +1,11 @@
-import { UserRoles } from "./../enumType";
-import { User } from "./../entity/User";
-import { Field, InputType, ObjectType, registerEnumType } from "type-graphql";
-import { ErrorResponse } from "./error";
+import { FileUpload, GraphQLUpload } from 'graphql-upload';
+import { UserRoles } from './../enumType';
+import { User } from './../entity/User';
+import { Field, InputType, ObjectType, registerEnumType } from 'type-graphql';
+import { ErrorResponse } from './error';
 
 registerEnumType(UserRoles, {
-  name: "UserRoles",
+  name: 'UserRoles',
 });
 
 @ObjectType()
@@ -20,9 +21,12 @@ export class LoginResponse {
 }
 
 @ObjectType()
-export class MeResponse {
-  @Field(() => User, { nullable: true })
-  user?: User;
+export class UsersResponse {
+  @Field(() => [User], { nullable: true })
+  users?: User[];
+
+  @Field(() => [ErrorResponse], { nullable: true })
+  errors?: ErrorResponse[];
 }
 
 @InputType()
