@@ -68,6 +68,7 @@ import { ratingResolvers } from './resolver/RatingResolvers';
       }),
       context: ({ req, res }): MovieContext => ({ req, res }),
       uploads: false,
+      subscriptions: { path: '/' },
     });
 
     apolloServer.applyMiddleware({
