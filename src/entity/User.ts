@@ -9,9 +9,9 @@ import {
   Column,
   BaseEntity,
   OneToMany,
-  ManyToMany,
-  JoinTable,
 } from 'typeorm';
+import { MovieCharacters } from './MovieCharacters';
+import { RatingMovies } from './RatingMovies';
 
 @ObjectType()
 @Entity()
@@ -48,8 +48,19 @@ export class User extends BaseEntity {
   @Column()
   photo?: string;
 
-  @Field(() => [MovieInfo], { nullable: true })
-  @ManyToMany(() => MovieInfo, (info) => info.characters, { nullable: true })
-  @JoinTable({ name: 'movies_characters' })
-  actingMovies?: Movie[];
+  @Field(() => [MovieCharacters], { nullable: true })
+  @OneToMany(
+    () => MovieCharacters,
+    (movieCharacter) => movieCharacter.characters,
+    {
+      nullable: true,
+    }
+  )
+  movieCharacters?: MovieCharacters[];
+
+  @Field(() => [RatingMovies], { nullable: true })
+  @OneToMany(() => RatingMovies, (ratingMovie) => ratingMovie.user, {
+    nullable: true,
+  })
+  ratingMovies?: RatingMovies[];
 }

@@ -16,6 +16,7 @@ import { uploadResolver } from './resolver/uploadResolvers';
 import { genreResolvers } from './resolver/genreResolvers';
 import { userResolvers } from './resolver/userResolvers';
 import { movieResolvers } from './resolver/movieResolvers';
+import { ratingResolvers } from './resolver/RatingResolvers';
 
 (async () => {
   dotenv.config();
@@ -62,6 +63,7 @@ import { movieResolvers } from './resolver/movieResolvers';
           genreResolvers,
           movieResolvers,
           uploadResolver,
+          ratingResolvers,
         ],
       }),
       context: ({ req, res }): MovieContext => ({ req, res }),

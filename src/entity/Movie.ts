@@ -8,9 +8,11 @@ import {
   Entity,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { RatingMovies } from './RatingMovies';
 
 @ObjectType()
 @Entity()
@@ -45,4 +47,10 @@ export class Movie extends BaseEntity {
   @Field(() => [Genre])
   @ManyToMany(() => Genre, (genre) => genre.movies)
   genres: Genre[];
+
+  @Field(() => [RatingMovies], { nullable: true })
+  @OneToMany(() => RatingMovies, (ratingMovie) => ratingMovie.movie, {
+    nullable: true,
+  })
+  ratingMovies?: RatingMovies[];
 }

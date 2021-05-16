@@ -88,6 +88,15 @@ export class UploadInput {
 }
 
 @InputType()
+class CharacterInput {
+  @Field()
+  id: string;
+
+  @Field()
+  role: string;
+}
+
+@InputType()
 export class CreateMovieInformationInput {
   @Field(() => MovieType)
   type: MovieType;
@@ -110,8 +119,8 @@ export class CreateMovieInformationInput {
   @Field(() => String)
   movie: string;
 
-  @Field(() => [String], { nullable: true })
-  characters?: string[];
+  @Field(() => [CharacterInput], { nullable: true })
+  characters?: CharacterInput[];
 
   @Field(() => String, { nullable: true })
   synopsis?: string;
@@ -122,9 +131,6 @@ export class CreateMovieInformationInput {
 
 @InputType()
 export class UpdateMovieInformationInput {
-  @Field()
-  id: string;
-
   @Field(() => MovieType)
   type: MovieType;
 
@@ -146,8 +152,8 @@ export class UpdateMovieInformationInput {
   @Field(() => String)
   movie: string;
 
-  @Field(() => [String], { nullable: true })
-  characters?: string[];
+  @Field(() => [CharacterInput], { nullable: true })
+  characters?: CharacterInput[];
 
   @Field(() => String, { nullable: true })
   synopsis?: string;

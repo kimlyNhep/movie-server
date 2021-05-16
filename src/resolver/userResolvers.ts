@@ -51,7 +51,7 @@ export class userResolvers {
 
       user.email = options.email;
       user.username = options.username;
-      user.role = options.role || UserRoles.MEMBER;
+      user.role = options.role || UserRoles.Member;
       user.password = hashedPassword;
       user.photo = `http://localhost:8000/profile/${filename}`;
 
@@ -155,7 +155,7 @@ export class userResolvers {
 
       user.email = options.email;
       user.username = options.username;
-      user.role = options.role || UserRoles.MEMBER;
+      user.role = options.role || UserRoles.Character;
       user.password = hashedPassword;
       user.photo = `http://localhost:8000/profile/${filename}`;
 
@@ -201,7 +201,7 @@ export class userResolvers {
       .createQueryBuilder()
       .select('user')
       .from(User, 'user')
-      .where('user.role = :role', { role: UserRoles.CHARACTER })
+      .where('user.role = :role', { role: UserRoles.Character })
       .getMany();
 
     if (!users) {

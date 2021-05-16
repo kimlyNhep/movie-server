@@ -1,3 +1,4 @@
+import { MovieCharacters } from '../entity/MovieCharacters';
 import { isAuth } from './../middleware/auth';
 import { MovieContext } from 'src/MovieContext';
 import { MovieInfo } from './../entity/MovieInfo';
@@ -24,8 +25,6 @@ import {
 import { validate } from 'class-validator';
 import { getRepository, getConnection } from 'typeorm';
 import { decode } from 'jsonwebtoken';
-import { UsersResponse } from '../types/user';
-import { UserRoles } from '../enumType';
 
 interface IToken {
   id?: string;
@@ -36,28 +35,28 @@ export class movieResolvers {
   async updateMovieInfo(
     @Arg('options') options: UpdateMovieInformationInput
   ): Promise<MovieInfoResponse> {
-    const info = await MovieInfo.findOne({ where: { id: options.id } });
+    let info = await getConnection()
+      .createQueryBuilder()
+      .select('info')
+      .from(MovieInfo, 'info')
+      .where('info.movie = :id', { id: options.movie })
+      .getOne();
 
     if (!info) {
-      return {
-        errors: [
-          {
-            message: "Movie Information doesn't exist",
-          },
-        ],
-      };
-    }
+      const movie = await Movie.findOne({ where: { id: options.movie } });
+      if (!movie) {
+        return {
+          errors: [
+            {
+              field: 'id',
+              message: "Movie doesn't exist",
+            },
+          ],
+        };
+      }
 
-    const movie = await Movie.findOne({ where: { id: options.movie } });
-
-    if (!movie) {
-      return {
-        errors: [
-          {
-            message: "Movie doesn't exist",
-          },
-        ],
-      };
+      info = new MovieInfo();
+      info.movie = movie;
     }
 
     let characters: User[] | undefined;
@@ -73,40 +72,78 @@ export class movieResolvers {
         };
     }
 
-    info.type = options.type;
-    info.producer = options.producer;
-    info.episode = options.episode;
-    info.status = options.status;
-    info.duration = options.durations;
-    info.released_date = options.released_date;
-    info.movie = movie;
-    info.characters = characters;
-    info.synopsis = options.synopsis;
-    info.backgroundInfo = options.backgroundInfo;
+    const characterWithRole = characters?.map((item, index) => {
+      if (item.id === options.characters![index].id) {
+        return { character: item, role: options.characters![index].role };
+      }
+      return null;
+    });
+
+    const queryRunner = getConnection().createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
-      await getConnection().manager.save(info);
-      return {
-        info,
-      };
-    } catch (err) {
-      const { code } = err;
+      info.type = options.type;
+      info.producer = options.producer;
+      info.episode = options.episode;
+      info.duration = options.durations;
+      info.status = options.status;
+      info.released_date = options.released_date;
+      info.synopsis = options.synopsis;
+      info.backgroundInfo = options.backgroundInfo;
 
-      if (code === '23505') {
-        const start = err.detail.indexOf('(');
-        const end = err.detail.indexOf(')');
+      const newMovieInfo = queryRunner.manager.create(MovieInfo, info);
+      await queryRunner.manager.update(MovieInfo, info.id, info);
+      const errors = await validate(info);
+
+      if (errors.length > 0) {
         return {
-          errors: [
-            {
-              field: err.detail.substring(start + 1, end),
-              message: 'Already exist!',
-            },
-          ],
+          errors: errors.map((error) => {
+            const { constraints, property } = error;
+            const key = Object.keys(constraints!)[0];
+            return { field: property, message: constraints![key] };
+          }),
+        };
+      } else {
+        // delete all relation characters on movie info
+        await getConnection()
+          .createQueryBuilder()
+          .delete()
+          .from(MovieCharacters)
+          .where('movieinfoId = :id', { id: info.id })
+          .execute();
+
+        for (const [key, value] of Object.entries(characterWithRole!)) {
+          const moviesCharacters = new MovieCharacters();
+          moviesCharacters.movieInfo = newMovieInfo;
+          moviesCharacters.characters = value!.character;
+          moviesCharacters.role = value!.role;
+
+          const newMoviesCharacters = queryRunner.manager.create(
+            MovieCharacters,
+            moviesCharacters
+          );
+
+          await queryRunner.manager.save(newMoviesCharacters);
+        }
+
+        await queryRunner.commitTransaction();
+
+        return {
+          info,
         };
       }
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
       return {
-        errors: err,
+        errors: [
+          {
+            message: 'fail',
+          },
+        ],
       };
+    } finally {
     }
   }
 
@@ -270,7 +307,9 @@ export class movieResolvers {
 
     let characters: User[] | undefined;
     if (options.characters) {
-      characters = await getRepository(User).findByIds(options.characters);
+      characters = await getRepository(User).findByIds(
+        options.characters.map((item) => item.id)
+      );
       if (characters.length < options.characters.length)
         return {
           errors: [
@@ -281,20 +320,32 @@ export class movieResolvers {
         };
     }
 
-    const movieInfo = new MovieInfo();
-    movieInfo.type = options.type;
-    movieInfo.producer = options.producer;
-    movieInfo.episode = options.episode;
-    movieInfo.duration = options.durations;
-    movieInfo.status = options.status;
-    movieInfo.released_date = options.released_date;
-    movieInfo.synopsis = options.synopsis;
-    movieInfo.backgroundInfo = options.backgroundInfo;
-    movieInfo.movie = movie;
-    movieInfo.characters = characters;
+    const characterWithRole = characters?.map((item, index) => {
+      if (item.id === options.characters![index].id) {
+        return { character: item, role: options.characters![index].role };
+      }
+      return null;
+    });
+
+    const queryRunner = getConnection().createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
+      let movieInfo = new MovieInfo();
+      movieInfo.type = options.type;
+      movieInfo.producer = options.producer;
+      movieInfo.episode = options.episode;
+      movieInfo.duration = options.durations;
+      movieInfo.status = options.status;
+      movieInfo.released_date = options.released_date;
+      movieInfo.synopsis = options.synopsis;
+      movieInfo.backgroundInfo = options.backgroundInfo;
+      movieInfo.movie = movie;
+      const newMovieInfo = queryRunner.manager.create(MovieInfo, movieInfo);
+      await queryRunner.manager.save(newMovieInfo);
       const errors = await validate(movieInfo);
+
       if (errors.length > 0) {
         return {
           errors: errors.map((error) => {
@@ -304,13 +355,26 @@ export class movieResolvers {
           }),
         };
       } else {
-        await getRepository(MovieInfo).save(movieInfo);
+        for (const [key, value] of Object.entries(characterWithRole!)) {
+          const moviesCharacters = new MovieCharacters();
+          moviesCharacters.movieInfo = newMovieInfo;
+          moviesCharacters.characters = value!.character;
+          moviesCharacters.role = value!.role;
+          const newMoviesCharacters = queryRunner.manager.create(
+            MovieCharacters,
+            moviesCharacters
+          );
+          await queryRunner.manager.save(newMoviesCharacters);
+        }
+
+        await queryRunner.commitTransaction();
+
         return {
-          info: movieInfo,
+          info: newMovieInfo,
         };
       }
     } catch (err) {
-      console.log(err);
+      await queryRunner.rollbackTransaction();
       return {
         errors: [
           {
@@ -318,6 +382,8 @@ export class movieResolvers {
           },
         ],
       };
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -330,8 +396,11 @@ export class movieResolvers {
       .where('movie.id = :id', { id })
       .innerJoinAndSelect('movie.creator', 'creator')
       .innerJoinAndSelect('movie.genres', 'genres')
+      .leftJoinAndSelect('movie.ratingMovies', 'ratingMovies')
+      .leftJoinAndSelect('ratingMovies.user', 'ratedUsers')
       .leftJoinAndSelect('movie.info', 'info')
-      .innerJoinAndSelect('info.characters', 'characters')
+      .leftJoinAndSelect('info.movieCharacters', 'movieCharacters')
+      .leftJoinAndSelect('movieCharacters.characters', 'characters')
       .getOne();
 
     if (!movieQuery) {
@@ -359,7 +428,8 @@ export class movieResolvers {
       .innerJoinAndSelect('movie.creator', 'creator')
       .innerJoinAndSelect('movie.genres', 'genres')
       .leftJoinAndSelect('movie.info', 'info')
-      .innerJoinAndSelect('info.characters', 'characters')
+      .leftJoinAndSelect('info.movieCharacters', 'movieCharacters')
+      .leftJoinAndSelect('movieCharacters.characters', 'characters')
       .getMany();
 
     return {
@@ -367,43 +437,43 @@ export class movieResolvers {
     };
   }
 
-  @Mutation(() => UsersResponse)
-  async addCharacters(
-    @Arg('id') id: string,
-    @Arg('characterIds', () => [String]) characterIds: string[]
-  ): Promise<UsersResponse> {
-    const movieInfo = await MovieInfo.findOne({ where: { id } });
+  // @Mutation(() => UsersResponse)
+  // async addCharacters(
+  //   @Arg('id') id: string,
+  //   @Arg('characterIds', () => [String]) characterIds: string[]
+  // ): Promise<UsersResponse> {
+  //   const movieInfo = await MovieInfo.findOne({ where: { id } });
 
-    if (!movieInfo) {
-      return {
-        errors: [
-          {
-            field: 'id',
-            message: "Movie doesn't exist",
-          },
-        ],
-      };
-    }
+  //   if (!movieInfo) {
+  //     return {
+  //       errors: [
+  //         {
+  //           field: 'id',
+  //           message: "Movie doesn't exist",
+  //         },
+  //       ],
+  //     };
+  //   }
 
-    const characters = await getRepository(User).findByIds(characterIds, {
-      where: { role: UserRoles.CHARACTER },
-    });
+  //   const characters = await getRepository(User).findByIds(characterIds, {
+  //     where: { role: UserRoles.CHARACTER },
+  //   });
 
-    if (characters.length < characterIds.length)
-      return {
-        errors: [
-          {
-            message: "Character donesn't exist",
-          },
-        ],
-      };
+  //   if (characters.length < characterIds.length)
+  //     return {
+  //       errors: [
+  //         {
+  //           message: "Character donesn't exist",
+  //         },
+  //       ],
+  //     };
 
-    movieInfo.characters = characters;
+  //   movieInfo.characters = characters;
 
-    await getConnection().manager.save(movieInfo);
+  //   await getConnection().manager.save(movieInfo);
 
-    return {
-      users: characters,
-    };
-  }
+  //   return {
+  //     users: characters,
+  //   };
+  // }
 }

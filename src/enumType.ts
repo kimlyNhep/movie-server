@@ -1,15 +1,15 @@
 export enum UserRoles {
-  ADMIN = 'admin',
-  MEMBER = 'member',
-  CHARACTER = 'character',
+  Admin = 'Admin',
+  Member = 'Member',
+  Character = 'Character',
 }
 
 export enum MovieType {
-  TV = 'tv',
-  MOVIE = 'movie',
+  Tv = 'Tv',
+  Movie = 'Movie',
 }
 
 export enum StatusType {
-  COMPLETED = 'completed',
-  ONGOING = 'on going',
+  Completed = 'Completed',
+  Ongoing = 'Ongoing',
 }

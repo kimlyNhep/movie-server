@@ -8,10 +8,11 @@ import {
   Entity,
   JoinColumn,
   ManyToMany,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from './User';
+import { MovieCharacters } from './MovieCharacters';
 
 @ObjectType()
 @Entity()
@@ -67,9 +68,13 @@ export class MovieInfo extends BaseEntity {
   @JoinColumn()
   movie: Movie;
 
-  @Field(() => [User], { nullable: true })
-  @ManyToMany(() => User, (character) => character.actingMovies, {
-    nullable: true,
-  })
-  characters?: User[];
+  @Field(() => [MovieCharacters], { nullable: true })
+  @OneToMany(
+    () => MovieCharacters,
+    (movieCharacter) => movieCharacter.movieInfo,
+    {
+      nullable: true,
+    }
+  )
+  movieCharacters?: MovieCharacters[];
 }

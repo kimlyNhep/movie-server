@@ -8,15 +8,6 @@ import { Resolver, Mutation, Arg } from 'type-graphql';
 import { GraphQLUpload } from 'graphql-upload';
 import { createWriteStream } from 'fs';
 
-// @InputType()
-// class MovieUploadInput {
-//   @Field()
-//   id: string;
-
-//   @Field(() => GraphQLUpload)
-//   photo: FileUpload;
-// }
-
 @ObjectType()
 class MovieUploadResponse {
   @Field({ nullable: true })
