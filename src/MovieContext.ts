@@ -1,5 +1,4 @@
-import { UserRoles } from "./enumType";
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
 
 export interface MovieContext {
   req: Request;

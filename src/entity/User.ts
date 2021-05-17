@@ -1,5 +1,4 @@
 import { Movie } from './Movie';
-import { MovieInfo } from './MovieInfo';
 import { UserRoles } from './../enumType';
 import { IsEmail, IsEnum } from 'class-validator';
 import { Field, ObjectType } from 'type-graphql';

@@ -1,5 +1,4 @@
-import { MovieContext } from "../MovieContext";
-import { decode } from "jsonwebtoken";
+import { MovieContext } from '../MovieContext';
 
 export const getUserLogged = ({ req }: MovieContext) => {
   const token = req.cookies;

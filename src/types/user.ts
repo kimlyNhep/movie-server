@@ -1,4 +1,3 @@
-import { FileUpload, GraphQLUpload } from 'graphql-upload';
 import { UserRoles } from './../enumType';
 import { User } from './../entity/User';
 import { Field, InputType, ObjectType, registerEnumType } from 'type-graphql';

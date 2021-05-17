@@ -11,15 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ratingResolvers = exports.RatingInput = void 0;
 const Movie_1 = require("../entity/Movie");
@@ -45,66 +36,64 @@ RatingInput = __decorate([
 ], RatingInput);
 exports.RatingInput = RatingInput;
 let ratingResolvers = class ratingResolvers {
-    ratingMovie({ req }, option) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { token } = req.cookies;
-            const { id } = jsonwebtoken_1.decode(token);
-            const user = yield User_1.User.findOne({ where: { id } });
-            if (!user) {
-                return {
-                    errors: [
-                        {
-                            message: 'User not exist',
-                        },
-                    ],
-                };
-            }
-            const movie = yield typeorm_1.getConnection()
-                .getRepository(Movie_1.Movie)
-                .findOne({ where: { id: option.movieId } });
-            if (!movie) {
-                return {
-                    errors: [
-                        {
-                            message: "Movie doesn't exist",
-                        },
-                    ],
-                };
-            }
-            const ratingMovies = yield typeorm_1.getConnection()
+    async ratingMovie({ req }, option) {
+        const { token } = req.cookies;
+        const { id } = jsonwebtoken_1.decode(token);
+        const user = await User_1.User.findOne({ where: { id } });
+        if (!user) {
+            return {
+                errors: [
+                    {
+                        message: 'User not exist',
+                    },
+                ],
+            };
+        }
+        const movie = await typeorm_1.getConnection()
+            .getRepository(Movie_1.Movie)
+            .findOne({ where: { id: option.movieId } });
+        if (!movie) {
+            return {
+                errors: [
+                    {
+                        message: "Movie doesn't exist",
+                    },
+                ],
+            };
+        }
+        const ratingMovies = await typeorm_1.getConnection()
+            .createQueryBuilder()
+            .from(RatingMovies_1.RatingMovies, 'ratingMovies')
+            .where('userId = :uid', { uid: user.id })
+            .andWhere('movieId = :mid', { mid: movie.id });
+        if (ratingMovies) {
+            await typeorm_1.getConnection()
                 .createQueryBuilder()
-                .from(RatingMovies_1.RatingMovies, 'ratingMovies')
+                .delete()
+                .from(RatingMovies_1.RatingMovies)
                 .where('userId = :uid', { uid: user.id })
-                .andWhere('movieId = :mid', { mid: movie.id });
-            if (ratingMovies) {
-                yield typeorm_1.getConnection()
-                    .createQueryBuilder()
-                    .delete()
-                    .from(RatingMovies_1.RatingMovies)
-                    .where('userId = :uid', { uid: user.id })
-                    .andWhere('movieId = :mid', { mid: movie.id })
-                    .execute();
-            }
-            const newRatingMovies = new RatingMovies_1.RatingMovies();
-            newRatingMovies.movie = movie;
-            newRatingMovies.user = user;
-            newRatingMovies.ratedPoint = option.ratedPoint;
-            try {
-                yield typeorm_1.getConnection().manager.save(newRatingMovies);
-                return {
-                    movie,
-                };
-            }
-            catch (err) {
-                return {
-                    errors: [
-                        {
-                            message: 'fail',
-                        },
-                    ],
-                };
-            }
-        });
+                .andWhere('movieId = :mid', { mid: movie.id })
+                .execute();
+        }
+        const newRatingMovies = new RatingMovies_1.RatingMovies();
+        newRatingMovies.movie = movie;
+        newRatingMovies.user = user;
+        newRatingMovies.ratedPoint = option.ratedPoint;
+        try {
+            await typeorm_1.getConnection().manager.save(newRatingMovies);
+            return {
+                movie,
+            };
+        }
+        catch (err) {
+            return {
+                errors: [
+                    {
+                        message: 'fail',
+                    },
+                ],
+            };
+        }
     }
 };
 __decorate([

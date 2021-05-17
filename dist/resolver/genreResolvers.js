@@ -11,15 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.genreResolvers = void 0;
 const auth_1 = require("./../middleware/auth");
@@ -29,59 +20,55 @@ const type_graphql_1 = require("type-graphql");
 const class_validator_1 = require("class-validator");
 const typeorm_1 = require("typeorm");
 let genreResolvers = class genreResolvers {
-    createGenre(name) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const genre = new Genre_1.Genre();
-            genre.name = name;
-            const errors = yield class_validator_1.validate(genre);
-            if (errors.length > 0) {
+    async createGenre(name) {
+        const genre = new Genre_1.Genre();
+        genre.name = name;
+        const errors = await class_validator_1.validate(genre);
+        if (errors.length > 0) {
+            return {
+                errors: errors.map((error) => {
+                    const { constraints, property } = error;
+                    const key = Object.keys(constraints)[0];
+                    return { field: property, message: constraints[key] };
+                }),
+            };
+        }
+        else {
+            try {
+                const newGenre = await typeorm_1.getManager().save(genre);
                 return {
-                    errors: errors.map((error) => {
-                        const { constraints, property } = error;
-                        const key = Object.keys(constraints)[0];
-                        return { field: property, message: constraints[key] };
-                    }),
+                    genre: newGenre,
                 };
             }
-            else {
-                try {
-                    const newGenre = yield typeorm_1.getManager().save(genre);
+            catch (err) {
+                const { code } = err;
+                if (code === '23505') {
+                    const start = err.detail.indexOf('(');
+                    const end = err.detail.indexOf(')');
                     return {
-                        genre: newGenre,
+                        errors: [
+                            {
+                                field: err.detail.substring(start + 1, end),
+                                message: 'Already exist!',
+                            },
+                        ],
                     };
                 }
-                catch (err) {
-                    const { code } = err;
-                    if (code === '23505') {
-                        const start = err.detail.indexOf('(');
-                        const end = err.detail.indexOf(')');
-                        return {
-                            errors: [
-                                {
-                                    field: err.detail.substring(start + 1, end),
-                                    message: 'Already exist!',
-                                },
-                            ],
-                        };
-                    }
-                    return {
-                        errors: err,
-                    };
-                }
+                return {
+                    errors: err,
+                };
             }
-        });
+        }
     }
-    getGenres() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const genreQuery = yield typeorm_1.getConnection()
-                .createQueryBuilder()
-                .select('genres')
-                .from(Genre_1.Genre, 'genres')
-                .getMany();
-            return {
-                genres: genreQuery,
-            };
-        });
+    async getGenres() {
+        const genreQuery = await typeorm_1.getConnection()
+            .createQueryBuilder()
+            .select('genres')
+            .from(Genre_1.Genre, 'genres')
+            .getMany();
+        return {
+            genres: genreQuery,
+        };
     }
 };
 __decorate([

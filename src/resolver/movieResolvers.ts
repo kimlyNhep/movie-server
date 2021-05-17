@@ -114,7 +114,7 @@ export class movieResolvers {
           .where('movieinfoId = :id', { id: info.id })
           .execute();
 
-        for (const [key, value] of Object.entries(characterWithRole!)) {
+        for (const [, value] of Object.entries(characterWithRole!)) {
           const moviesCharacters = new MovieCharacters();
           moviesCharacters.movieInfo = newMovieInfo;
           moviesCharacters.characters = value!.character;
@@ -355,7 +355,7 @@ export class movieResolvers {
           }),
         };
       } else {
-        for (const [key, value] of Object.entries(characterWithRole!)) {
+        for (const [, value] of Object.entries(characterWithRole!)) {
           const moviesCharacters = new MovieCharacters();
           moviesCharacters.movieInfo = newMovieInfo;
           moviesCharacters.characters = value!.character;

@@ -11,15 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userResolvers = void 0;
 const graphql_upload_1 = require("graphql-upload");
@@ -35,168 +26,158 @@ const class_validator_1 = require("class-validator");
 const typeorm_1 = require("typeorm");
 const fs_1 = require("fs");
 let userResolvers = class userResolvers {
-    me({ payload }) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const user = yield User_1.User.findOne({ where: { id: payload === null || payload === void 0 ? void 0 : payload.id } });
-            return user;
-        });
+    async me({ payload }) {
+        const user = await User_1.User.findOne({ where: { id: payload === null || payload === void 0 ? void 0 : payload.id } });
+        return user;
     }
-    register(options, photo) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const hashedPassword = yield bcryptjs_1.hash(options.password, 12);
-            try {
-                const { createReadStream, filename } = photo;
-                createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/profile/${filename}`));
-                const user = new User_1.User();
-                user.email = options.email;
-                user.username = options.username;
-                user.role = options.role || enumType_1.UserRoles.Member;
-                user.password = hashedPassword;
-                user.photo = `http://localhost:8000/profile/${filename}`;
-                const errors = yield class_validator_1.validate(user);
-                if (errors.length > 0) {
-                    return {
-                        errors: errors.map((error) => {
-                            const { constraints, property } = error;
-                            const key = Object.keys(constraints)[0];
-                            return { field: property, message: constraints[key] };
-                        }),
-                    };
-                }
-                else {
-                    yield typeorm_1.getManager().save(user);
-                    return {
-                        user,
-                    };
-                }
-            }
-            catch (err) {
-                const { code } = err;
-                if (code === '23505') {
-                    const start = err.detail.indexOf('(');
-                    const end = err.detail.indexOf(')');
-                    return {
-                        errors: [
-                            {
-                                field: err.detail.substring(start + 1, end),
-                                message: 'Already exist!',
-                            },
-                        ],
-                    };
-                }
+    async register(options, photo) {
+        const hashedPassword = await bcryptjs_1.hash(options.password, 12);
+        try {
+            const { createReadStream, filename } = photo;
+            createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/profile/${filename}`));
+            const user = new User_1.User();
+            user.email = options.email;
+            user.username = options.username;
+            user.role = options.role || enumType_1.UserRoles.Member;
+            user.password = hashedPassword;
+            user.photo = `http://localhost:8000/profile/${filename}`;
+            const errors = await class_validator_1.validate(user);
+            if (errors.length > 0) {
                 return {
-                    errors: err,
+                    errors: errors.map((error) => {
+                        const { constraints, property } = error;
+                        const key = Object.keys(constraints)[0];
+                        return { field: property, message: constraints[key] };
+                    }),
                 };
             }
-        });
-    }
-    login(options, { res }) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const user = yield User_1.User.findOne({ where: { username: options.username } });
-            if (!user) {
+            else {
+                await typeorm_1.getManager().save(user);
+                return {
+                    user,
+                };
+            }
+        }
+        catch (err) {
+            const { code } = err;
+            if (code === '23505') {
+                const start = err.detail.indexOf('(');
+                const end = err.detail.indexOf(')');
                 return {
                     errors: [
                         {
-                            field: 'username',
-                            message: 'User not exist',
+                            field: err.detail.substring(start + 1, end),
+                            message: 'Already exist!',
                         },
                     ],
                 };
             }
-            const valid = yield bcryptjs_1.compare(options.password, user.password);
-            if (!valid) {
-                return {
-                    errors: [
-                        {
-                            field: 'password',
-                            message: 'is Not Correct.',
-                        },
-                    ],
-                };
-            }
-            sendRefreshToken_1.sendRefreshToken(res, token_1.accessToken(user));
             return {
-                accessToken: token_1.accessToken(user),
-                user,
+                errors: err,
             };
-        });
+        }
     }
-    logout({ req, res }) {
+    async login(options, { res }) {
+        const user = await User_1.User.findOne({ where: { username: options.username } });
+        if (!user) {
+            return {
+                errors: [
+                    {
+                        field: 'username',
+                        message: 'User not exist',
+                    },
+                ],
+            };
+        }
+        const valid = await bcryptjs_1.compare(options.password, user.password);
+        if (!valid) {
+            return {
+                errors: [
+                    {
+                        field: 'password',
+                        message: 'is Not Correct.',
+                    },
+                ],
+            };
+        }
+        sendRefreshToken_1.sendRefreshToken(res, token_1.accessToken(user));
+        return {
+            accessToken: token_1.accessToken(user),
+            user,
+        };
+    }
+    logout({ res }) {
         return new Promise((resolve) => {
             res.clearCookie('token');
             resolve(true);
         });
     }
-    createCharacter(options, photo) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const hashedPassword = yield bcryptjs_1.hash(options.password, 12);
-            try {
-                const { createReadStream, filename } = photo;
-                createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/profile/${filename}`));
-                const user = new User_1.User();
-                user.email = options.email;
-                user.username = options.username;
-                user.role = options.role || enumType_1.UserRoles.Character;
-                user.password = hashedPassword;
-                user.photo = `http://localhost:8000/profile/${filename}`;
-                const errors = yield class_validator_1.validate(user);
-                if (errors.length > 0) {
-                    return {
-                        errors: errors.map((error) => {
-                            const { constraints, property } = error;
-                            const key = Object.keys(constraints)[0];
-                            return { field: property, message: constraints[key] };
-                        }),
-                    };
-                }
-                else {
-                    yield typeorm_1.getManager().save(user);
-                    return {
-                        user,
-                    };
-                }
-            }
-            catch (err) {
-                const { code } = err;
-                if (code === '23505') {
-                    const start = err.detail.indexOf('(');
-                    const end = err.detail.indexOf(')');
-                    return {
-                        errors: [
-                            {
-                                field: err.detail.substring(start + 1, end),
-                                message: 'Already exist!',
-                            },
-                        ],
-                    };
-                }
+    async createCharacter(options, photo) {
+        const hashedPassword = await bcryptjs_1.hash(options.password, 12);
+        try {
+            const { createReadStream, filename } = photo;
+            createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/profile/${filename}`));
+            const user = new User_1.User();
+            user.email = options.email;
+            user.username = options.username;
+            user.role = options.role || enumType_1.UserRoles.Character;
+            user.password = hashedPassword;
+            user.photo = `http://localhost:8000/profile/${filename}`;
+            const errors = await class_validator_1.validate(user);
+            if (errors.length > 0) {
                 return {
-                    errors: err,
+                    errors: errors.map((error) => {
+                        const { constraints, property } = error;
+                        const key = Object.keys(constraints)[0];
+                        return { field: property, message: constraints[key] };
+                    }),
                 };
             }
-        });
-    }
-    getAllCharacter() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const users = yield typeorm_1.getConnection()
-                .createQueryBuilder()
-                .select('user')
-                .from(User_1.User, 'user')
-                .where('user.role = :role', { role: enumType_1.UserRoles.Character })
-                .getMany();
-            if (!users) {
+            else {
+                await typeorm_1.getManager().save(user);
+                return {
+                    user,
+                };
+            }
+        }
+        catch (err) {
+            const { code } = err;
+            if (code === '23505') {
+                const start = err.detail.indexOf('(');
+                const end = err.detail.indexOf(')');
                 return {
                     errors: [
                         {
-                            message: "User doesn't exist",
+                            field: err.detail.substring(start + 1, end),
+                            message: 'Already exist!',
                         },
                     ],
                 };
             }
             return {
-                users: users,
+                errors: err,
             };
-        });
+        }
+    }
+    async getAllCharacter() {
+        const users = await typeorm_1.getConnection()
+            .createQueryBuilder()
+            .select('user')
+            .from(User_1.User, 'user')
+            .where('user.role = :role', { role: enumType_1.UserRoles.Character })
+            .getMany();
+        if (!users) {
+            return {
+                errors: [
+                    {
+                        message: "User doesn't exist",
+                    },
+                ],
+            };
+        }
+        return {
+            users: users,
+        };
     }
 };
 __decorate([

@@ -2,7 +2,7 @@ import { getManager } from 'typeorm';
 import { ErrorResponse } from '../types/error';
 import { ObjectType } from 'type-graphql';
 import { Movie } from './../entity/Movie';
-import { Field, InputType } from 'type-graphql';
+import { Field } from 'type-graphql';
 import { FileUpload } from 'graphql-upload';
 import { Resolver, Mutation, Arg } from 'type-graphql';
 import { GraphQLUpload } from 'graphql-upload';

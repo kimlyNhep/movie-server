@@ -131,7 +131,7 @@ export class userResolvers {
   }
 
   @Mutation(() => Boolean)
-  logout(@Ctx() { req, res }: MovieContext) {
+  logout(@Ctx() { res }: MovieContext) {
     return new Promise((resolve) => {
       res.clearCookie('token');
       resolve(true);
