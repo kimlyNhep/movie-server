@@ -120,4 +120,4 @@ ratingResolvers = __decorate([
     type_graphql_1.Resolver()
 ], ratingResolvers);
 exports.ratingResolvers = ratingResolvers;
-//# sourceMappingURL=RatingResolvers.js.map
+//# sourceMappingURL=ratingResolvers.js.map

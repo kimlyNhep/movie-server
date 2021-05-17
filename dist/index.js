@@ -29,7 +29,7 @@ const uploadResolvers_1 = require("./resolver/uploadResolvers");
 const genreResolvers_1 = require("./resolver/genreResolvers");
 const userResolvers_1 = require("./resolver/userResolvers");
 const movieResolvers_1 = require("./resolver/movieResolvers");
-const RatingResolvers_1 = require("./resolver/RatingResolvers");
+const ratingResolvers_1 = require("./resolver/ratingResolvers");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     dotenv_1.default.config();
     const app = express_1.default();
@@ -68,7 +68,7 @@ const RatingResolvers_1 = require("./resolver/RatingResolvers");
                     genreResolvers_1.genreResolvers,
                     movieResolvers_1.movieResolvers,
                     uploadResolvers_1.uploadResolver,
-                    RatingResolvers_1.ratingResolvers,
+                    ratingResolvers_1.ratingResolvers,
                 ],
             }),
             context: ({ req, res }) => ({ req, res }),
