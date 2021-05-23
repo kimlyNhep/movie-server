@@ -11,6 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadResolver = void 0;
 const typeorm_1 = require("typeorm");
@@ -35,45 +44,47 @@ MovieUploadResponse = __decorate([
     type_graphql_1.ObjectType()
 ], MovieUploadResponse);
 let uploadResolver = class uploadResolver {
-    async uploadMoviePhoto(id, photo) {
-        const movie = await Movie_1.Movie.findOne({ where: { id } });
-        if (!movie) {
-            return {
-                errors: [
-                    {
-                        field: 'id',
-                        message: "Movie doesn't exist",
-                    },
-                ],
-            };
-        }
-        const { createReadStream, filename } = photo;
-        createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/images/${filename}`));
-        movie.photo = `http://localhost:8000/images/${filename}`;
-        try {
-            await typeorm_1.getManager().save(movie);
-        }
-        catch (err) {
-            const { code } = err;
-            if (code === '23505') {
-                const start = err.detail.indexOf('(');
-                const end = err.detail.indexOf(')');
+    uploadMoviePhoto(id, photo) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const movie = yield Movie_1.Movie.findOne({ where: { id } });
+            if (!movie) {
                 return {
                     errors: [
                         {
-                            field: err.detail.substring(start + 1, end),
-                            message: 'Already exist!',
+                            field: 'id',
+                            message: "Movie doesn't exist",
                         },
                     ],
                 };
             }
+            const { createReadStream, filename } = photo;
+            createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/images/${filename}`));
+            movie.photo = `http://localhost:8000/images/${filename}`;
+            try {
+                yield typeorm_1.getManager().save(movie);
+            }
+            catch (err) {
+                const { code } = err;
+                if (code === '23505') {
+                    const start = err.detail.indexOf('(');
+                    const end = err.detail.indexOf(')');
+                    return {
+                        errors: [
+                            {
+                                field: err.detail.substring(start + 1, end),
+                                message: 'Already exist!',
+                            },
+                        ],
+                    };
+                }
+                return {
+                    errors: err,
+                };
+            }
             return {
-                errors: err,
+                imageUrl: `http://localhost:8000/images/${filename}`,
             };
-        }
-        return {
-            imageUrl: `http://localhost:8000/images/${filename}`,
-        };
+        });
     }
 };
 __decorate([

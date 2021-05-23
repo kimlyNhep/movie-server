@@ -17,8 +17,9 @@ import { genreResolvers } from './resolver/genreResolvers';
 import { userResolvers } from './resolver/userResolvers';
 import { movieResolvers } from './resolver/movieResolvers';
 import { ratingResolvers } from './resolver/ratingResolvers';
+import path from 'path';
 
-(async () => {
+const app = async () => {
   dotenv.config();
   const app = express();
 
@@ -54,7 +55,16 @@ import { ratingResolvers } from './resolver/ratingResolvers';
   });
 
   try {
-    await createConnection();
+    await createConnection({
+      type: 'postgres',
+      database: 'movies_db',
+      username: 'kimly',
+      password: '0168',
+      logging: true,
+      synchronize: false,
+      migrations: [path.join(__dirname, 'migration/**/*.{js,ts}')],
+      entities: [path.join(__dirname, 'entity/**/*.{js,ts}')],
+    });
 
     const apolloServer = new ApolloServer({
       schema: await buildSchema({
@@ -82,4 +92,6 @@ import { ratingResolvers } from './resolver/ratingResolvers';
   } catch (err) {
     console.log(err);
   }
-})();
+};
+
+app().catch((err) => console.log(err));
