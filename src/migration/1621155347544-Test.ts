@@ -4,6 +4,9 @@ export class Test1621155347544 implements MigrationInterface {
     name = 'Test1621155347544'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`CREATE TYPE "user_role_enum" AS ENUM('Admin', 'Member', 'Character')`);
+        await queryRunner.query(`CREATE TYPE "movie_info_type_enum" AS ENUM('Tv', 'Movie')`);
+        await queryRunner.query(`CREATE TYPE "movie_info_status_enum" AS ENUM('Completed', 'Ongoing')`);
         await queryRunner.query(`CREATE TABLE "rating_movies" ("ratedPoint" integer NOT NULL, "userId" uuid NOT NULL, "movieId" uuid NOT NULL, CONSTRAINT "PK_6d6ae29a041cfa3e5c71e8e60c3" PRIMARY KEY ("userId", "movieId"))`);
         await queryRunner.query(`CREATE TABLE "user" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "email" text NOT NULL, "username" text NOT NULL, "role" "user_role_enum" NOT NULL, "password" text NOT NULL, "photo" character varying NOT NULL, CONSTRAINT "UQ_e12875dfb3b1d92d7d7c5377e22" UNIQUE ("email"), CONSTRAINT "UQ_78a916df40e02a9deb1c4b75edb" UNIQUE ("username"), CONSTRAINT "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "movie_characters" ("role" character varying, "userId" uuid NOT NULL, "movieinfoId" uuid NOT NULL, CONSTRAINT "PK_9de2f926022cdb17d4649de1a16" PRIMARY KEY ("userId", "movieinfoId"))`);
