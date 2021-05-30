@@ -57,10 +57,10 @@ const app = async () => {
   try {
     await createConnection({
       type: 'postgres',
-      host: process.env.DATABASE_URL,
-      database: 'movies_db',
-      username: 'kimly',
-      password: '0168',
+      host: 'ec2-54-205-183-19.compute-1.amazonaws.com',
+      database: 'ddrgs892vhn6ak',
+      username: 'joytkawnlpwdcq',
+      password: '546c039124795af20e024347182ea9b8b280a28bf281714bae1fc2b42748b6ee',
       logging: true,
       synchronize: false,
       migrations: [path.join(__dirname, 'migration/**/*.{js,ts}')],
