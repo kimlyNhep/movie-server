@@ -1,6 +1,6 @@
 {
   "type": "postgres",
-  "host": "localhost",
+  "host": "postgres://joytkawnlpwdcq:546c039124795af20e024347182ea9b8b280a28bf281714bae1fc2b42748b6ee@ec2-54-205-183-19.compute-1.amazonaws.com:5432/ddrgs892vhn6ak",
   "port": 5432,
   "username": "kimly",
   "password": "0168",

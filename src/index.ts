@@ -57,6 +57,7 @@ const app = async () => {
   try {
     await createConnection({
       type: 'postgres',
+      host: process.env.DATABASE_URL,
       database: 'movies_db',
       username: 'kimly',
       password: '0168',
