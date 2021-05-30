@@ -44,6 +44,9 @@ export class Test1621155347544 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE "movie_characters"`);
         await queryRunner.query(`DROP TABLE "user"`);
         await queryRunner.query(`DROP TABLE "rating_movies"`);
+        await queryRunner.query(`DROP TYPE "user_role_enum"`);
+        await queryRunner.query(`DROP TYPE "movie_info_type_enum"`);
+        await queryRunner.query(`DROP TYPE "movie_info_status_enum"`);
     }
 
 }

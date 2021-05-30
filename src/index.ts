@@ -88,7 +88,7 @@ const app = async () => {
       cors: false,
     });
 
-    app.listen(8000, () => {
+    app.listen(process.env.PORT, () => {
       console.log('Express server stated');
     });
   } catch (err) {
