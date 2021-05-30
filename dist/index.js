@@ -68,6 +68,7 @@ const app = () => __awaiter(void 0, void 0, void 0, function* () {
             username: 'joytkawnlpwdcq',
             password: '546c039124795af20e024347182ea9b8b280a28bf281714bae1fc2b42748b6ee',
             logging: true,
+            ssl: { rejectUnauthorized: false },
             synchronize: false,
             migrations: [path_1.default.join(__dirname, 'migration/**/*.{js,ts}')],
             entities: [path_1.default.join(__dirname, 'entity/**/*.{js,ts}')],

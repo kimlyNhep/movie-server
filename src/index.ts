@@ -62,6 +62,7 @@ const app = async () => {
       username: 'joytkawnlpwdcq',
       password: '546c039124795af20e024347182ea9b8b280a28bf281714bae1fc2b42748b6ee',
       logging: true,
+      ssl: {rejectUnauthorized: false},
       synchronize: false,
       migrations: [path.join(__dirname, 'migration/**/*.{js,ts}')],
       entities: [path.join(__dirname, 'entity/**/*.{js,ts}')],
