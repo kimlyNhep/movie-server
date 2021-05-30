@@ -91,7 +91,7 @@ const app = () => __awaiter(void 0, void 0, void 0, function* () {
             app,
             cors: false,
         });
-        app.listen(8000, () => {
+        app.listen(process.env.PORT, () => {
             console.log('Express server stated');
         });
     }

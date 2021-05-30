@@ -59,7 +59,7 @@ let uploadResolver = class uploadResolver {
             }
             const { createReadStream, filename } = photo;
             createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/images/${filename}`));
-            movie.photo = `http://localhost:8000/images/${filename}`;
+            movie.photo = `${process.env.HOST}/images/${filename}`;
             try {
                 yield typeorm_1.getManager().save(movie);
             }
@@ -82,7 +82,7 @@ let uploadResolver = class uploadResolver {
                 };
             }
             return {
-                imageUrl: `http://localhost:8000/images/${filename}`,
+                imageUrl: `${process.env.HOST}/images/${filename}`,
             };
         });
     }

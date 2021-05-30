@@ -52,7 +52,7 @@ let userResolvers = class userResolvers {
                 user.username = options.username;
                 user.role = options.role || enumType_1.UserRoles.Member;
                 user.password = hashedPassword;
-                user.photo = `http://localhost:8000/profile/${filename}`;
+                user.photo = `${process.env.HOST}/profile/${filename}`;
                 const errors = yield class_validator_1.validate(user);
                 if (errors.length > 0) {
                     return {
@@ -138,7 +138,7 @@ let userResolvers = class userResolvers {
                 user.username = options.username;
                 user.role = options.role || enumType_1.UserRoles.Character;
                 user.password = hashedPassword;
-                user.photo = `http://localhost:8000/profile/${filename}`;
+                user.photo = `${process.env.HOST}/profile/${filename}`;
                 const errors = yield class_validator_1.validate(user);
                 if (errors.length > 0) {
                     return {

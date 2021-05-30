@@ -53,7 +53,7 @@ export class userResolvers {
       user.username = options.username;
       user.role = options.role || UserRoles.Member;
       user.password = hashedPassword;
-      user.photo = `http://localhost:8000/profile/${filename}`;
+      user.photo = `${process.env.HOST}/profile/${filename}`;
 
       const errors = await validate(user);
       if (errors.length > 0) {
@@ -157,7 +157,7 @@ export class userResolvers {
       user.username = options.username;
       user.role = options.role || UserRoles.Character;
       user.password = hashedPassword;
-      user.photo = `http://localhost:8000/profile/${filename}`;
+      user.photo = `${process.env.HOST}/profile/${filename}`;
 
       const errors = await validate(user);
       if (errors.length > 0) {

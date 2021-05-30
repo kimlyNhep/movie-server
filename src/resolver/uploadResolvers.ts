@@ -44,7 +44,7 @@ export class uploadResolver {
     );
 
     // add photo url to database
-    movie.photo = `http://localhost:8000/images/${filename}`;
+    movie.photo = `${process.env.HOST}/images/${filename}`;
 
     try {
       await getManager().save(movie);
@@ -69,7 +69,7 @@ export class uploadResolver {
     }
 
     return {
-      imageUrl: `http://localhost:8000/images/${filename}`,
+      imageUrl: `${process.env.HOST}/images/${filename}`,
     };
   }
 }
