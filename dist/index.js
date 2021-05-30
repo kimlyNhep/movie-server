@@ -63,6 +63,7 @@ const app = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield typeorm_1.createConnection({
             type: 'postgres',
+            host: process.env.DATABASE_URL,
             database: 'movies_db',
             username: 'kimly',
             password: '0168',
