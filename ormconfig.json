@@ -1,4 +1,24 @@
+[{
+  "name": "default",
+  "type": "postgres",
+  "host": "127.0.0.1",
+  "port": 5432,
+  "username": "kimly",
+  "password": "0168",
+  "database": "movies_db",
+  "synchronize": false,
+  "logging": false,
+  "entities": ["src/entity/**/*.ts"],
+  "migrations": ["src/migration/**/*.ts"],
+  "subscribers": ["src/subscriber/**/*.ts"],
+  "cli": {
+    "entitiesDir": "src/entity",
+    "migrationsDir": "src/migration",
+    "subscribersDir": "src/subscriber"
+  }
+},
 {
+  "name": "production",
   "type": "postgres",
   "host": "ec2-54-205-183-19.compute-1.amazonaws.com",
   "port": 5432,
@@ -7,18 +27,13 @@
   "database": "ddrgs892vhn6ak",
   "synchronize": false,
   "logging": false,
-  "entities": ["src/entity/**/*.ts"],
-  "migrations": ["src/migration/**/*.ts"],
-  "subscribers": ["src/subscriber/**/*.ts"],
+  "entities": ["dist/entity/**/*.js"],
+  "migrations": ["dist/migration/**/*.js"],
+  "subscribers": ["dist/subscriber/**/*.js"],
   "ssl": true,
   "extra": {
     "ssl": {
       "rejectUnauthorized": false
     }
-  },
-  "cli": {
-    "entitiesDir": "src/entity",
-    "migrationsDir": "src/migration",
-    "subscribersDir": "src/subscriber"
   }
-}
+}]

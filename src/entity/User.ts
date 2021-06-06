@@ -19,10 +19,10 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Field()
+  @Field({ nullable: true })
   @IsEmail({}, { message: 'Invalid Email Format!' })
-  @Column('text', { nullable: false, unique: true })
-  email: string;
+  @Column('text', { nullable: true, unique: true })
+  email?: string;
 
   @Field()
   @Column('text', { nullable: false, unique: true })

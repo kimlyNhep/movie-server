@@ -30,8 +30,8 @@ export class UsersResponse {
 
 @InputType()
 export class UserRegisterInput {
-  @Field()
-  email: string;
+  @Field({ nullable: true })
+  email?: string;
 
   @Field()
   username: string;

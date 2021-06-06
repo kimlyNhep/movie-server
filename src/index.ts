@@ -7,7 +7,7 @@ import { accessToken } from './token';
 import { User } from './entity/User';
 import { verify } from 'jsonwebtoken';
 import { MovieContext } from './MovieContext';
-import { createConnection } from 'typeorm';
+import { createConnection, getConnectionOptions } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { sendRefreshToken } from './sendRefreshToken';
@@ -17,14 +17,30 @@ import { genreResolvers } from './resolver/genreResolvers';
 import { userResolvers } from './resolver/userResolvers';
 import { movieResolvers } from './resolver/movieResolvers';
 import { ratingResolvers } from './resolver/ratingResolvers';
-import path from 'path';
 
 const app = async () => {
   dotenv.config();
   const app = express();
 
+  const allowedDomains = [
+    'http://localhost:3000',
+    'https://elegant-turing-5a0a50.netlify.app',
+  ];
   app.use(cookieParser());
-  app.use(cors({ origin: 'https://elegant-turing-5a0a50.netlify.app', credentials: true }));
+  app.use(
+    cors({
+      origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+
+        if (allowedDomains.indexOf(origin) === -1) {
+          var msg = `This site ${origin} does not have an access. Only specific domains are allowed to access it.`;
+          return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+      },
+      credentials: true,
+    })
+  );
   app.use(
     graphqlUploadExpress({
       maxFileSize: 10000000,
@@ -55,18 +71,12 @@ const app = async () => {
   });
 
   try {
-    await createConnection({
-      type: 'postgres',
-      host: 'ec2-54-205-183-19.compute-1.amazonaws.com',
-      database: 'ddrgs892vhn6ak',
-      username: 'joytkawnlpwdcq',
-      password: '546c039124795af20e024347182ea9b8b280a28bf281714bae1fc2b42748b6ee',
-      logging: true,
-      ssl: {rejectUnauthorized: false},
-      synchronize: false,
-      migrations: [path.join(__dirname, 'migration/**/*.{js,ts}')],
-      entities: [path.join(__dirname, 'entity/**/*.{js,ts}')],
-    });
+    let connectionOptions = await getConnectionOptions();
+    if (process.env.NODE_ENV === 'production')
+      connectionOptions = await getConnectionOptions('production');
+    else connectionOptions = await getConnectionOptions('default');
+
+    await createConnection(connectionOptions);
 
     const apolloServer = new ApolloServer({
       schema: await buildSchema({

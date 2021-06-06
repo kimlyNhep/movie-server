@@ -7,6 +7,7 @@ import { FileUpload } from 'graphql-upload';
 import { Resolver, Mutation, Arg } from 'type-graphql';
 import { GraphQLUpload } from 'graphql-upload';
 import { createWriteStream } from 'fs';
+import { getEnvHost } from '../utils/helper';
 
 @ObjectType()
 class MovieUploadResponse {
@@ -44,7 +45,7 @@ export class uploadResolver {
     );
 
     // add photo url to database
-    movie.photo = `${process.env.HOST}/images/${filename}`;
+    movie.photo = `${getEnvHost()}/images/${filename}`;
 
     try {
       await getManager().save(movie);
@@ -69,7 +70,7 @@ export class uploadResolver {
     }
 
     return {
-      imageUrl: `${process.env.HOST}/images/${filename}`,
+      imageUrl: `${getEnvHost()}/images/${filename}`,
     };
   }
 }

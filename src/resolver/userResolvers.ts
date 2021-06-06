@@ -24,6 +24,7 @@ import { compare, hash } from 'bcryptjs';
 import { validate } from 'class-validator';
 import { getConnection, getManager } from 'typeorm';
 import { createWriteStream } from 'fs';
+import { getEnvHost } from '../utils/helper';
 
 @Resolver()
 export class userResolvers {
@@ -42,10 +43,19 @@ export class userResolvers {
     const hashedPassword = await hash(options.password, 12);
 
     try {
-      const { createReadStream, filename } = photo!;
-      createReadStream().pipe(
-        createWriteStream(__dirname + `/../../public/profile/${filename}`)
-      );
+      let fileName: string;
+
+      if (photo) {
+        const { createReadStream, filename } = photo;
+
+        fileName = filename;
+
+        createReadStream().pipe(
+          createWriteStream(__dirname + `/../../public/profile/${filename}`)
+        );
+      } else {
+        fileName = 'default.png';
+      }
 
       const user = new User();
 
@@ -53,7 +63,7 @@ export class userResolvers {
       user.username = options.username;
       user.role = options.role || UserRoles.Member;
       user.password = hashedPassword;
-      user.photo = `${process.env.HOST}/profile/${filename}`;
+      user.photo = `${getEnvHost()}/profile/${fileName}`;
 
       const errors = await validate(user);
       if (errors.length > 0) {
@@ -157,7 +167,7 @@ export class userResolvers {
       user.username = options.username;
       user.role = options.role || UserRoles.Character;
       user.password = hashedPassword;
-      user.photo = `${process.env.HOST}/profile/${filename}`;
+      user.photo = `${getEnvHost()}/profile/${filename}`;
 
       const errors = await validate(user);
       if (errors.length > 0) {

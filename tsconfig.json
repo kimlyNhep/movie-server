@@ -8,6 +8,7 @@
       "es2017",
       "esnext.asynciterable"
     ],
+    "allowJs": true,
     "sourceMap": true,
     "outDir": "./dist",
     "moduleResolution": "node",
@@ -33,5 +34,5 @@
   "include": [
     "./src/**/*.tsx",
     "./src/**/*.ts"
-  ]
+, "seeder/Seeder.ts"  ]
 }

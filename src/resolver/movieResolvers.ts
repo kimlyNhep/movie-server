@@ -428,6 +428,7 @@ export class movieResolvers {
       .innerJoinAndSelect('movie.creator', 'creator')
       .innerJoinAndSelect('movie.genres', 'genres')
       .leftJoinAndSelect('movie.info', 'info')
+      .orderBy('info.released_date', 'ASC')
       .leftJoinAndSelect('info.movieCharacters', 'movieCharacters')
       .leftJoinAndSelect('movieCharacters.characters', 'characters')
       .getMany();
@@ -437,43 +438,23 @@ export class movieResolvers {
     };
   }
 
-  // @Mutation(() => UsersResponse)
-  // async addCharacters(
-  //   @Arg('id') id: string,
-  //   @Arg('characterIds', () => [String]) characterIds: string[]
-  // ): Promise<UsersResponse> {
-  //   const movieInfo = await MovieInfo.findOne({ where: { id } });
+  @Query(() => MoviesResponse)
+  async getMoviesByYear(@Arg('year') year: number): Promise<MoviesResponse> {
+    const moviesQuery = await getConnection()
+      .createQueryBuilder()
+      .select('movie')
+      .from(Movie, 'movie')
+      .orderBy('movie.title', 'ASC')
+      .innerJoinAndSelect('movie.creator', 'creator')
+      .innerJoinAndSelect('movie.genres', 'genres')
+      .leftJoinAndSelect('movie.info', 'info')
+      .where(`info.released_date like '%${year}%'`)
+      .leftJoinAndSelect('info.movieCharacters', 'movieCharacters')
+      .leftJoinAndSelect('movieCharacters.characters', 'characters')
+      .getMany();
 
-  //   if (!movieInfo) {
-  //     return {
-  //       errors: [
-  //         {
-  //           field: 'id',
-  //           message: "Movie doesn't exist",
-  //         },
-  //       ],
-  //     };
-  //   }
-
-  //   const characters = await getRepository(User).findByIds(characterIds, {
-  //     where: { role: UserRoles.CHARACTER },
-  //   });
-
-  //   if (characters.length < characterIds.length)
-  //     return {
-  //       errors: [
-  //         {
-  //           message: "Character donesn't exist",
-  //         },
-  //       ],
-  //     };
-
-  //   movieInfo.characters = characters;
-
-  //   await getConnection().manager.save(movieInfo);
-
-  //   return {
-  //     users: characters,
-  //   };
-  // }
+    return {
+      movies: moviesQuery,
+    };
+  }
 }
