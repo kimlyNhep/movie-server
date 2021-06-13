@@ -1,7 +1,6 @@
 import { Movie } from '../entity/Movie';
 import { getConnection } from 'typeorm';
 import { RatingMovies } from '../entity/RatingMovies';
-import { decode } from 'jsonwebtoken';
 import { User } from '../entity/User';
 import { isAuth } from '../middleware/auth';
 import { MovieContext } from '../MovieContext';
@@ -17,10 +16,6 @@ import {
   Arg,
 } from 'type-graphql';
 
-interface IToken {
-  id?: string;
-}
-
 @InputType()
 export class RatingInput {
   @Field(() => Int)
@@ -35,12 +30,10 @@ export class ratingResolvers {
   @Mutation(() => MovieResponse)
   @UseMiddleware(isAuth)
   async ratingMovie(
-    @Ctx() { req }: MovieContext,
+    @Ctx() { payload }: MovieContext,
     @Arg('option') option: RatingInput
   ): Promise<MovieResponse> {
-    const { token } = req.cookies;
-    const { id } = <IToken>decode(token);
-    const user = await User.findOne({ where: { id } });
+    const user = await User.findOne({ where: { id: payload?.id } });
 
     if (!user) {
       return {

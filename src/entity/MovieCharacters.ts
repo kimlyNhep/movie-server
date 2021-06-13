@@ -1,20 +1,23 @@
+import { Character } from './Character';
 import { Field, ObjectType } from 'type-graphql';
 import { MovieInfo } from './MovieInfo';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { User } from './User';
+import { Movie } from './Movie';
 
 @ObjectType()
 @Entity('movie_characters')
 export class MovieCharacters {
-  @Field(() => User)
-  @JoinColumn({ name: 'userId' })
-  @ManyToOne(() => User, (user) => user.movieCharacters, { primary: true })
-  characters: User;
+  @Field(() => Character)
+  @JoinColumn({ name: 'characterId' })
+  @ManyToOne(() => Character, (character) => character.movieCharacters, {
+    primary: true,
+  })
+  character: Character;
 
-  @Field(() => MovieInfo)
-  @JoinColumn({ name: 'movieinfoId' })
-  @ManyToOne(() => MovieInfo, (info) => info.movieCharacters, { primary: true })
-  movieInfo: MovieInfo;
+  @Field(() => Movie)
+  @JoinColumn({ name: 'movieId' })
+  @ManyToOne(() => Movie, (movie) => movie.movieCharacters, { primary: true })
+  movie: Movie;
 
   @Field({ nullable: true })
   @Column({ nullable: true })

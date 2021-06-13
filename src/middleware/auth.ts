@@ -24,6 +24,22 @@ export const isAuth: MiddlewareFn<MovieContext> = ({ context }, next) => {
   return next();
 };
 
+export const isLogged: MiddlewareFn<MovieContext> = ({ context }, next) => {
+  const authorization = context.req.headers['authorization'];
+
+  try {
+    const token = authorization?.split(' ')[1];
+    if (token) {
+      const payload = verify(token, process.env.ACCESS_TOKEN_SECRET!);
+      context.payload = payload as any;
+    }
+  } catch {
+    context.payload = undefined;
+  }
+
+  return next();
+};
+
 export const isAdmin: MiddlewareFn<MovieContext> = async (
   { context },
   next

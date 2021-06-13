@@ -1,7 +1,6 @@
 export enum UserRoles {
   Admin = 'Admin',
   Member = 'Member',
-  Character = 'Character',
 }
 
 export enum MovieType {

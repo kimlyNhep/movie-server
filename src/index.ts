@@ -17,6 +17,9 @@ import { genreResolvers } from './resolver/genreResolvers';
 import { userResolvers } from './resolver/userResolvers';
 import { movieResolvers } from './resolver/movieResolvers';
 import { ratingResolvers } from './resolver/ratingResolvers';
+import { characterResolvers } from './resolver/characterResolvers';
+import { movieInfoResolvers } from './resolver/movieInfoResolvers';
+import { commentResolvers } from './resolver/commentResolvers';
 
 const app = async () => {
   dotenv.config();
@@ -86,11 +89,13 @@ const app = async () => {
           movieResolvers,
           uploadResolver,
           ratingResolvers,
+          characterResolvers,
+          movieInfoResolvers,
+          commentResolvers,
         ],
       }),
       context: ({ req, res }): MovieContext => ({ req, res }),
       uploads: false,
-      subscriptions: { path: '/' },
     });
 
     apolloServer.applyMiddleware({

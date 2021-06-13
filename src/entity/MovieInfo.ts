@@ -66,14 +66,4 @@ export class MovieInfo extends BaseEntity {
   @OneToOne(() => Movie)
   @JoinColumn()
   movie: Movie;
-
-  @Field(() => [MovieCharacters], { nullable: true })
-  @OneToMany(
-    () => MovieCharacters,
-    (movieCharacter) => movieCharacter.movieInfo,
-    {
-      nullable: true,
-    }
-  )
-  movieCharacters?: MovieCharacters[];
 }

@@ -55,6 +55,9 @@ export class CreateMovieInput {
 
   @Field(() => [String])
   genres: string[];
+
+  @Field(() => [CharacterInput], { nullable: true })
+  characters?: CharacterInput[];
 }
 
 @InputType()
@@ -70,6 +73,9 @@ export class UpdateMovieInput {
 
   @Field(() => [String])
   genres: string[];
+
+  @Field(() => [CharacterInput], { nullable: true })
+  characters?: CharacterInput[];
 }
 
 @InputType()
@@ -119,9 +125,6 @@ export class CreateMovieInformationInput {
   @Field(() => String)
   movie: string;
 
-  @Field(() => [CharacterInput], { nullable: true })
-  characters?: CharacterInput[];
-
   @Field(() => String, { nullable: true })
   synopsis?: string;
 
@@ -151,9 +154,6 @@ export class UpdateMovieInformationInput {
 
   @Field(() => String)
   movie: string;
-
-  @Field(() => [CharacterInput], { nullable: true })
-  characters?: CharacterInput[];
 
   @Field(() => String, { nullable: true })
   synopsis?: string;

@@ -9,8 +9,8 @@ import {
   BaseEntity,
   OneToMany,
 } from 'typeorm';
-import { MovieCharacters } from './MovieCharacters';
 import { RatingMovies } from './RatingMovies';
+import { Comment } from './Comment';
 
 @ObjectType()
 @Entity()
@@ -47,19 +47,15 @@ export class User extends BaseEntity {
   @Column()
   photo?: string;
 
-  @Field(() => [MovieCharacters], { nullable: true })
-  @OneToMany(
-    () => MovieCharacters,
-    (movieCharacter) => movieCharacter.characters,
-    {
-      nullable: true,
-    }
-  )
-  movieCharacters?: MovieCharacters[];
-
   @Field(() => [RatingMovies], { nullable: true })
   @OneToMany(() => RatingMovies, (ratingMovie) => ratingMovie.user, {
     nullable: true,
   })
   ratingMovies?: RatingMovies[];
+
+  @Field(() => [Comment], { nullable: true })
+  @OneToMany(() => Comment, (comment) => comment.user, {
+    nullable: true,
+  })
+  comment?: Comment[];
 }

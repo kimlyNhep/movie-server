@@ -1,3 +1,4 @@
+import { Comment } from './Comment';
 import { Genre } from './Genre';
 import { MovieInfo } from './MovieInfo';
 import { ObjectType, Field } from 'type-graphql';
@@ -13,6 +14,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { RatingMovies } from './RatingMovies';
+import { MovieCharacters } from './MovieCharacters';
 
 @ObjectType()
 @Entity()
@@ -53,4 +55,16 @@ export class Movie extends BaseEntity {
     nullable: true,
   })
   ratingMovies?: RatingMovies[];
+
+  @Field(() => [Comment], { nullable: true })
+  @OneToMany(() => Comment, (comment) => comment.movie, {
+    nullable: true,
+  })
+  comment?: Comment[];
+
+  @Field(() => [MovieCharacters], { nullable: true })
+  @OneToMany(() => MovieCharacters, (movieCharacter) => movieCharacter.movie, {
+    nullable: true,
+  })
+  movieCharacters?: MovieCharacters[];
 }
