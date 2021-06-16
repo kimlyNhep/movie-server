@@ -1,3 +1,4 @@
+import { movieStateResolvers } from './resolver/movieStateResolvers';
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -92,6 +93,7 @@ const app = async () => {
           characterResolvers,
           movieInfoResolvers,
           commentResolvers,
+          movieStateResolvers,
         ],
       }),
       context: ({ req, res }): MovieContext => ({ req, res }),

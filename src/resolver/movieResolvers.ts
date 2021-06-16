@@ -1,5 +1,3 @@
-import { ErrorResponse } from './../types/error';
-import { Comment } from '../entity/Comment';
 import { MovieCharacters } from './../entity/MovieCharacters';
 import { Character } from './../entity/Character';
 import { isAuth } from './../middleware/auth';
@@ -12,17 +10,15 @@ import {
   CreateMovieInput,
   MoviesResponse,
   UpdateMovieInput,
+  MovieRankingResponse,
 } from './../types/movie';
 import {
   Arg,
   Ctx,
-  Field,
   Mutation,
-  InputType,
   Query,
   Resolver,
   UseMiddleware,
-  ObjectType,
 } from 'type-graphql';
 import { validate } from 'class-validator';
 import { getRepository, getConnection } from 'typeorm';
@@ -276,6 +272,7 @@ export class movieResolvers {
       .leftJoinAndSelect('movieCharacters.character', 'characters')
       .leftJoinAndSelect('ratingMovies.user', 'ratedUsers')
       .leftJoinAndSelect('movie.info', 'info')
+      .leftJoinAndSelect('movie.movieState', 'movieState')
       .orderBy('comment.createdAt', 'ASC')
       .getOne();
 
@@ -298,9 +295,7 @@ export class movieResolvers {
   @Query(() => MoviesResponse)
   async getMovies(): Promise<MoviesResponse> {
     const moviesQuery = await getConnection()
-      .createQueryBuilder()
-      .select('movie')
-      .from(Movie, 'movie')
+      .createQueryBuilder(Movie, 'movie')
       .innerJoinAndSelect('movie.creator', 'creator')
       .innerJoinAndSelect('movie.genres', 'genres')
       .leftJoinAndSelect('movie.ratingMovies', 'ratingMovies')
@@ -334,6 +329,32 @@ export class movieResolvers {
 
     return {
       movies: moviesQuery,
+    };
+  }
+
+  @Query(() => MovieRankingResponse)
+  async getRankingMovies(): Promise<MovieRankingResponse> {
+    const moviesQuery = await getConnection()
+      .createQueryBuilder(Movie, 'movie')
+      .innerJoinAndSelect('movie.creator', 'creator')
+      .innerJoinAndSelect('movie.genres', 'genres')
+      .leftJoinAndSelect('movie.ratingMovies', 'ratingMovies')
+      .leftJoinAndSelect('movie.comment', 'comment')
+      .leftJoinAndSelect('comment.user', 'users')
+      .leftJoinAndSelect('movie.movieCharacters', 'movieCharacters')
+      .leftJoinAndSelect('movieCharacters.character', 'characters')
+      .leftJoinAndSelect('ratingMovies.user', 'ratedUsers')
+      .leftJoinAndSelect('movie.info', 'info')
+      .orderBy('movie.point', 'DESC')
+      .getMany();
+
+    const movies = moviesQuery.map((item, index) => ({
+      rankingMovie: item,
+      rank: index + 1,
+    }));
+
+    return {
+      movies,
     };
   }
 }

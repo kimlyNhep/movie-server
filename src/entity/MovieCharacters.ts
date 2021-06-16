@@ -1,6 +1,5 @@
 import { Character } from './Character';
 import { Field, ObjectType } from 'type-graphql';
-import { MovieInfo } from './MovieInfo';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Movie } from './Movie';
 

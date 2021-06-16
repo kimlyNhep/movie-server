@@ -5,7 +5,6 @@ import {
   RegisterResponse,
   UserLoginInput,
   UserRegisterInput,
-  UsersResponse,
 } from './../types/user';
 import { sendRefreshToken } from './../sendRefreshToken';
 import { isAuth } from './../middleware/auth';
@@ -19,12 +18,20 @@ import {
   Resolver,
   Ctx,
   UseMiddleware,
+  ObjectType,
+  Field,
 } from 'type-graphql';
 import { compare, hash } from 'bcryptjs';
 import { validate } from 'class-validator';
-import { getManager } from 'typeorm';
+import { getManager, getRepository } from 'typeorm';
 import { createWriteStream } from 'fs';
 import { getEnvHost } from '../utils/helper';
+
+@ObjectType()
+class NumberUserType {
+  @Field(() => Number)
+  total: number;
+}
 
 @Resolver()
 export class userResolvers {
@@ -35,8 +42,19 @@ export class userResolvers {
     return user;
   }
 
+  @Query(() => NumberUserType)
+  async getTotalUsers(): Promise<NumberUserType> {
+    const numberOfUser = await getRepository(User)
+      .createQueryBuilder()
+      .getCount();
+    return {
+      total: numberOfUser,
+    };
+  }
+
   @Mutation(() => RegisterResponse)
   async register(
+    @Ctx() { res }: MovieContext,
     @Arg('options') options: UserRegisterInput,
     @Arg('photo', () => GraphQLUpload, { nullable: true }) photo?: FileUpload
   ): Promise<RegisterResponse> {
@@ -76,8 +94,12 @@ export class userResolvers {
         };
       } else {
         await getManager().save(user);
+
+        sendRefreshToken(res, accessToken(user));
+
         return {
           user,
+          accessToken: accessToken(user),
         };
       }
     } catch (err) {

@@ -1,3 +1,4 @@
+import { MovieState } from './MovieState';
 import { Movie } from './Movie';
 import { UserRoles } from './../enumType';
 import { IsEmail, IsEnum } from 'class-validator';
@@ -58,4 +59,10 @@ export class User extends BaseEntity {
     nullable: true,
   })
   comment?: Comment[];
+
+  @Field(() => [MovieState], { nullable: true })
+  @OneToMany(() => MovieState, (movieState) => movieState.user, {
+    nullable: true,
+  })
+  movieState?: MovieState[];
 }

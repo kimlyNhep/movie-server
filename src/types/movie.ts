@@ -1,5 +1,6 @@
+import { Movie } from './../entity/Movie';
 import { ErrorResponse } from '../types/error';
-import { MovieType, StatusType } from './../enumType';
+import { MovieType, StatusType, MovieStateType } from './../enumType';
 import {
   Field,
   InputType,
@@ -8,7 +9,6 @@ import {
   registerEnumType,
 } from 'type-graphql';
 import { Stream } from 'stream';
-import { Movie } from '../entity/Movie';
 import { MovieInfo } from '../entity/MovieInfo';
 
 registerEnumType(MovieType, {
@@ -18,6 +18,28 @@ registerEnumType(MovieType, {
 registerEnumType(StatusType, {
   name: 'StatusType',
 });
+
+registerEnumType(MovieStateType, {
+  name: 'MovieStateType',
+});
+
+@ObjectType()
+class RankingType {
+  @Field(() => Movie)
+  rankingMovie: Movie;
+
+  @Field(() => Number)
+  rank: number;
+}
+@ObjectType()
+export class MovieRankingResponse {
+  @Field(() => [RankingType], { nullable: true })
+  movies?: RankingType[];
+
+  @Field(() => [ErrorResponse], { nullable: true })
+  errors?: ErrorResponse[];
+}
+
 @ObjectType()
 export class MovieResponse {
   @Field(() => Movie, { nullable: true })

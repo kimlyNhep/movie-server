@@ -59,35 +59,50 @@ export class ratingResolvers {
       };
     }
 
-    const ratingMovies = await getConnection()
+    await getConnection()
       .createQueryBuilder()
-      .from(RatingMovies, 'ratingMovies')
+      .delete()
+      .from(RatingMovies)
       .where('userId = :uid', { uid: user.id })
-      .andWhere('movieId = :mid', { mid: movie.id });
+      .andWhere('movieId = :mid', { mid: movie.id })
+      .execute();
 
-    if (ratingMovies) {
-      // delete old rating
-      await getConnection()
-        .createQueryBuilder()
-        .delete()
-        .from(RatingMovies)
-        .where('userId = :uid', { uid: user.id })
-        .andWhere('movieId = :mid', { mid: movie.id })
-        .execute();
-    }
-
-    const newRatingMovies = new RatingMovies();
-    newRatingMovies.movie = movie;
-    newRatingMovies.user = user;
-    newRatingMovies.ratedPoint = option.ratedPoint;
+    const queryRunner = getConnection().createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
-      await getConnection().manager.save(newRatingMovies);
+      const newMovie = queryRunner.manager.create(Movie, movie);
+
+      const newRatingMovies = new RatingMovies();
+      newRatingMovies.movie = movie;
+      newRatingMovies.user = user;
+      newRatingMovies.ratedPoint = option.ratedPoint;
+
+      await queryRunner.manager.save(newRatingMovies);
+
+      const ratingMovies = await queryRunner.manager.find(RatingMovies, {
+        where: { movie },
+      });
+
+      const totalRatedPoint = ratingMovies?.reduce((totalPoint, point) => {
+        return totalPoint + point.ratedPoint;
+      }, 0);
+
+      newMovie.point = Number(totalRatedPoint);
+
+      await queryRunner.manager.save(newMovie);
+
+      await queryRunner.commitTransaction();
 
       return {
         movie,
       };
     } catch (err) {
+      console.log(err);
+
+      await queryRunner.rollbackTransaction();
+
       return {
         errors: [
           {

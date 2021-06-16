@@ -1,3 +1,4 @@
+import { MovieState } from './MovieState';
 import { Comment } from './Comment';
 import { Genre } from './Genre';
 import { MovieInfo } from './MovieInfo';
@@ -67,4 +68,14 @@ export class Movie extends BaseEntity {
     nullable: true,
   })
   movieCharacters?: MovieCharacters[];
+
+  @Field(() => Number, { nullable: true })
+  @Column({ nullable: true, type: 'float' })
+  point?: number;
+
+  @Field(() => [MovieState], { nullable: true })
+  @OneToMany(() => MovieState, (movieState) => movieState.movie, {
+    nullable: true,
+  })
+  movieState?: MovieState[];
 }

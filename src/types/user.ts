@@ -59,4 +59,7 @@ export class RegisterResponse {
 
   @Field(() => [ErrorResponse], { nullable: true })
   errors?: ErrorResponse[];
+
+  @Field(() => String, { nullable: true })
+  accessToken?: string;
 }

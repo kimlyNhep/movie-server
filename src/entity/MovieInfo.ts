@@ -7,11 +7,9 @@ import {
   Column,
   Entity,
   JoinColumn,
-  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { MovieCharacters } from './MovieCharacters';
 
 @ObjectType()
 @Entity()

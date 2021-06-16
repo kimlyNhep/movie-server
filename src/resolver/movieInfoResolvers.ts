@@ -1,15 +1,13 @@
 import { isAuth } from './../middleware/auth';
 import { MovieInfo } from './../entity/MovieInfo';
-import { getConnection, getRepository } from 'typeorm';
+import { getConnection } from 'typeorm';
 import {
   MovieInfoResponse,
   UpdateMovieInformationInput,
   CreateMovieInformationInput,
 } from './../types/movie';
 import { Mutation, Resolver, Arg, UseMiddleware } from 'type-graphql';
-import { Character } from '../entity/Character';
 import { Movie } from '../entity/Movie';
-import { MovieCharacters } from '../entity/MovieCharacters';
 import { validate } from 'class-validator';
 
 @Resolver()

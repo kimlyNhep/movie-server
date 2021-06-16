@@ -12,3 +12,10 @@ export enum StatusType {
   Completed = 'Completed',
   Ongoing = 'Ongoing',
 }
+
+export enum MovieStateType {
+  Watching = 'Watching',
+  Plantowatch = 'Plantowatch',
+  Completed = 'Completed',
+  Drop = 'Drop',
+}
