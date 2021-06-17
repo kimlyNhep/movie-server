@@ -176,6 +176,7 @@ export class movieResolvers {
     movie.description = options.description;
     movie.creator = user;
     movie.genres = genres;
+    movie.point = 0;
 
     let characters: Character[] | undefined;
     if (options.characters) {
@@ -352,6 +353,21 @@ export class movieResolvers {
       rankingMovie: item,
       rank: index + 1,
     }));
+
+    return {
+      movies,
+    };
+  }
+
+  @Query(() => MoviesResponse)
+  @UseMiddleware(isAuth)
+  async getMoviesByUser(
+    @Ctx() { payload }: MovieContext
+  ): Promise<MoviesResponse> {
+    const movies = await getConnection()
+      .createQueryBuilder(Movie, 'movie')
+      .where('movie.creatorId = :uid', { uid: payload?.id })
+      .getMany();
 
     return {
       movies,

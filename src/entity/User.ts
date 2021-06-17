@@ -9,6 +9,7 @@ import {
   Column,
   BaseEntity,
   OneToMany,
+  CreateDateColumn,
 } from 'typeorm';
 import { RatingMovies } from './RatingMovies';
 import { Comment } from './Comment';
@@ -65,4 +66,10 @@ export class User extends BaseEntity {
     nullable: true,
   })
   movieState?: MovieState[];
+
+  @CreateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP(6)',
+  })
+  createdAt: Date;
 }
