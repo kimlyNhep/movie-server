@@ -25,7 +25,6 @@ exports.ratingResolvers = exports.RatingInput = void 0;
 const Movie_1 = require("../entity/Movie");
 const typeorm_1 = require("typeorm");
 const RatingMovies_1 = require("../entity/RatingMovies");
-const jsonwebtoken_1 = require("jsonwebtoken");
 const User_1 = require("../entity/User");
 const auth_1 = require("../middleware/auth");
 const movie_1 = require("../types/movie");
@@ -45,11 +44,9 @@ RatingInput = __decorate([
 ], RatingInput);
 exports.RatingInput = RatingInput;
 let ratingResolvers = class ratingResolvers {
-    ratingMovie({ req }, option) {
+    ratingMovie({ payload }, option) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { token } = req.cookies;
-            const { id } = jsonwebtoken_1.decode(token);
-            const user = yield User_1.User.findOne({ where: { id } });
+            const user = yield User_1.User.findOne({ where: { id: payload === null || payload === void 0 ? void 0 : payload.id } });
             if (!user) {
                 return {
                     errors: [
@@ -59,9 +56,7 @@ let ratingResolvers = class ratingResolvers {
                     ],
                 };
             }
-            const movie = yield typeorm_1.getConnection()
-                .getRepository(Movie_1.Movie)
-                .findOne({ where: { id: option.movieId } });
+            const movie = yield Movie_1.Movie.findOne({ where: { id: option.movieId } });
             if (!movie) {
                 return {
                     errors: [
@@ -71,38 +66,65 @@ let ratingResolvers = class ratingResolvers {
                     ],
                 };
             }
-            const ratingMovies = yield typeorm_1.getConnection()
-                .createQueryBuilder()
-                .from(RatingMovies_1.RatingMovies, 'ratingMovies')
-                .where('userId = :uid', { uid: user.id })
-                .andWhere('movieId = :mid', { mid: movie.id });
-            if (ratingMovies) {
-                yield typeorm_1.getConnection()
-                    .createQueryBuilder()
-                    .delete()
-                    .from(RatingMovies_1.RatingMovies)
-                    .where('userId = :uid', { uid: user.id })
-                    .andWhere('movieId = :mid', { mid: movie.id })
-                    .execute();
-            }
-            const newRatingMovies = new RatingMovies_1.RatingMovies();
-            newRatingMovies.movie = movie;
-            newRatingMovies.user = user;
-            newRatingMovies.ratedPoint = option.ratedPoint;
+            let existingRatingMovie = yield typeorm_1.getConnection()
+                .createQueryBuilder(RatingMovies_1.RatingMovies, 'ratingMovie')
+                .where('ratingMovie.userId = :uid', { uid: user.id })
+                .andWhere('ratingMovie.movieId = :mid', { mid: movie.id })
+                .getOne();
+            const queryRunner = typeorm_1.getConnection().createQueryRunner();
+            yield queryRunner.connect();
+            yield queryRunner.startTransaction();
             try {
-                yield typeorm_1.getConnection().manager.save(newRatingMovies);
+                const newMovie = queryRunner.manager.create(Movie_1.Movie, movie);
+                if (!existingRatingMovie) {
+                    existingRatingMovie = new RatingMovies_1.RatingMovies();
+                }
+                existingRatingMovie.movie = movie;
+                existingRatingMovie.user = user;
+                existingRatingMovie.ratedPoint = option.ratedPoint;
+                yield queryRunner.manager.save(existingRatingMovie);
+                const ratingMovies = yield queryRunner.manager.find(RatingMovies_1.RatingMovies, {
+                    where: { movie },
+                });
+                const totalRatedPoint = ratingMovies === null || ratingMovies === void 0 ? void 0 : ratingMovies.reduce((totalPoint, point) => {
+                    return totalPoint + point.ratedPoint;
+                }, 0);
+                console.log('Total Rated Point : ', totalRatedPoint);
+                newMovie.point = Number(totalRatedPoint);
+                yield queryRunner.manager.save(newMovie);
+                const movies = yield queryRunner.manager.find(Movie_1.Movie, {
+                    order: { point: 'DESC' },
+                });
+                movies.forEach((m, index) => __awaiter(this, void 0, void 0, function* () {
+                    const rankMovie = queryRunner.manager.create(Movie_1.Movie, m);
+                    rankMovie.rank = index + 1;
+                    yield queryRunner.manager.save(rankMovie);
+                }));
+                let index = 0;
+                for (const [, value] of Object.entries(movies)) {
+                    const rankMovie = queryRunner.manager.create(Movie_1.Movie, value);
+                    rankMovie.rank = index + 1;
+                    index++;
+                    yield queryRunner.manager.save(rankMovie);
+                }
+                yield queryRunner.commitTransaction();
                 return {
-                    movie,
+                    movie: newMovie,
                 };
             }
             catch (err) {
+                console.log(err);
+                yield queryRunner.rollbackTransaction();
                 return {
                     errors: [
                         {
-                            message: 'fail',
+                            message: 'something went wrong!',
                         },
                     ],
                 };
+            }
+            finally {
+                yield queryRunner.release();
             }
         });
     }

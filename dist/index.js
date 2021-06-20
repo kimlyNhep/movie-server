@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const movieStateResolvers_1 = require("./resolver/movieStateResolvers");
 require("reflect-metadata");
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
@@ -30,12 +31,29 @@ const genreResolvers_1 = require("./resolver/genreResolvers");
 const userResolvers_1 = require("./resolver/userResolvers");
 const movieResolvers_1 = require("./resolver/movieResolvers");
 const ratingResolvers_1 = require("./resolver/ratingResolvers");
-const path_1 = __importDefault(require("path"));
+const characterResolvers_1 = require("./resolver/characterResolvers");
+const movieInfoResolvers_1 = require("./resolver/movieInfoResolvers");
+const commentResolvers_1 = require("./resolver/commentResolvers");
 const app = () => __awaiter(void 0, void 0, void 0, function* () {
     dotenv_1.default.config();
     const app = express_1.default();
+    const allowedDomains = [
+        'http://localhost:3000',
+        'https://elegant-turing-5a0a50.netlify.app',
+    ];
     app.use(cookie_parser_1.default());
-    app.use(cors_1.default({ origin: 'http://localhost:3000', credentials: true }));
+    app.use(cors_1.default({
+        origin: function (origin, callback) {
+            if (!origin)
+                return callback(null, true);
+            if (allowedDomains.indexOf(origin) === -1) {
+                var msg = `This site ${origin} does not have an access. Only specific domains are allowed to access it.`;
+                return callback(new Error(msg), false);
+            }
+            return callback(null, true);
+        },
+        credentials: true,
+    }));
     app.use(graphql_upload_1.graphqlUploadExpress({
         maxFileSize: 10000000,
         maxFiles: 20,
@@ -61,18 +79,12 @@ const app = () => __awaiter(void 0, void 0, void 0, function* () {
         return res.send({ ok: true, accessToken: token_1.accessToken(user) });
     }));
     try {
-        yield typeorm_1.createConnection({
-            type: 'postgres',
-            host: 'ec2-54-205-183-19.compute-1.amazonaws.com',
-            database: 'ddrgs892vhn6ak',
-            username: 'joytkawnlpwdcq',
-            password: '546c039124795af20e024347182ea9b8b280a28bf281714bae1fc2b42748b6ee',
-            logging: true,
-            ssl: { rejectUnauthorized: false },
-            synchronize: false,
-            migrations: [path_1.default.join(__dirname, 'migration/**/*.{js,ts}')],
-            entities: [path_1.default.join(__dirname, 'entity/**/*.{js,ts}')],
-        });
+        let connectionOptions = yield typeorm_1.getConnectionOptions();
+        if (process.env.NODE_ENV === 'production')
+            connectionOptions = yield typeorm_1.getConnectionOptions('production');
+        else
+            connectionOptions = yield typeorm_1.getConnectionOptions('default');
+        yield typeorm_1.createConnection(connectionOptions);
         const apolloServer = new apollo_server_express_1.ApolloServer({
             schema: yield type_graphql_1.buildSchema({
                 resolvers: [
@@ -81,11 +93,14 @@ const app = () => __awaiter(void 0, void 0, void 0, function* () {
                     movieResolvers_1.movieResolvers,
                     uploadResolvers_1.uploadResolver,
                     ratingResolvers_1.ratingResolvers,
+                    characterResolvers_1.characterResolvers,
+                    movieInfoResolvers_1.movieInfoResolvers,
+                    commentResolvers_1.commentResolvers,
+                    movieStateResolvers_1.movieStateResolvers,
                 ],
             }),
             context: ({ req, res }) => ({ req, res }),
             uploads: false,
-            subscriptions: { path: '/' },
         });
         apolloServer.applyMiddleware({
             app,

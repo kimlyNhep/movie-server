@@ -52,7 +52,7 @@ exports.UsersResponse = UsersResponse;
 let UserRegisterInput = class UserRegisterInput {
 };
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field({ nullable: true }),
     __metadata("design:type", String)
 ], UserRegisterInput.prototype, "email", void 0);
 __decorate([
@@ -95,6 +95,10 @@ __decorate([
     type_graphql_1.Field(() => [error_1.ErrorResponse], { nullable: true }),
     __metadata("design:type", Array)
 ], RegisterResponse.prototype, "errors", void 0);
+__decorate([
+    type_graphql_1.Field(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], RegisterResponse.prototype, "accessToken", void 0);
 RegisterResponse = __decorate([
     type_graphql_1.ObjectType()
 ], RegisterResponse);

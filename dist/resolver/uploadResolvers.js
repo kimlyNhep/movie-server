@@ -30,6 +30,7 @@ const type_graphql_2 = require("type-graphql");
 const type_graphql_3 = require("type-graphql");
 const graphql_upload_1 = require("graphql-upload");
 const fs_1 = require("fs");
+const helper_1 = require("../utils/helper");
 let MovieUploadResponse = class MovieUploadResponse {
 };
 __decorate([
@@ -59,7 +60,7 @@ let uploadResolver = class uploadResolver {
             }
             const { createReadStream, filename } = photo;
             createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/images/${filename}`));
-            movie.photo = `${process.env.HOST}/images/${filename}`;
+            movie.photo = `${helper_1.getEnvHost()}/images/${filename}`;
             try {
                 yield typeorm_1.getManager().save(movie);
             }
@@ -82,7 +83,7 @@ let uploadResolver = class uploadResolver {
                 };
             }
             return {
-                imageUrl: `${process.env.HOST}/images/${filename}`,
+                imageUrl: `${helper_1.getEnvHost()}/images/${filename}`,
             };
         });
     }

@@ -9,12 +9,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateMovieInformationInput = exports.CreateMovieInformationInput = exports.UploadInput = exports.UpdateMovieInput = exports.CreateMovieInput = exports.MovieInfoResponse = exports.MoviesResponse = exports.MovieResponse = void 0;
+exports.UpdateMovieInformationInput = exports.CreateMovieInformationInput = exports.UploadInput = exports.UpdateMovieInput = exports.CreateMovieInput = exports.MovieInfoResponse = exports.MoviesResponse = exports.MovieResponse = exports.MovieRankingResponse = void 0;
+const Movie_1 = require("./../entity/Movie");
 const error_1 = require("../types/error");
 const enumType_1 = require("./../enumType");
 const type_graphql_1 = require("type-graphql");
 const stream_1 = require("stream");
-const Movie_1 = require("../entity/Movie");
 const MovieInfo_1 = require("../entity/MovieInfo");
 type_graphql_1.registerEnumType(enumType_1.MovieType, {
     name: 'MovieType',
@@ -22,6 +22,36 @@ type_graphql_1.registerEnumType(enumType_1.MovieType, {
 type_graphql_1.registerEnumType(enumType_1.StatusType, {
     name: 'StatusType',
 });
+type_graphql_1.registerEnumType(enumType_1.MovieStateType, {
+    name: 'MovieStateType',
+});
+let RankingType = class RankingType {
+};
+__decorate([
+    type_graphql_1.Field(() => Movie_1.Movie),
+    __metadata("design:type", Movie_1.Movie)
+], RankingType.prototype, "rankingMovie", void 0);
+__decorate([
+    type_graphql_1.Field(() => Number),
+    __metadata("design:type", Number)
+], RankingType.prototype, "rank", void 0);
+RankingType = __decorate([
+    type_graphql_1.ObjectType()
+], RankingType);
+let MovieRankingResponse = class MovieRankingResponse {
+};
+__decorate([
+    type_graphql_1.Field(() => [RankingType], { nullable: true }),
+    __metadata("design:type", Array)
+], MovieRankingResponse.prototype, "movies", void 0);
+__decorate([
+    type_graphql_1.Field(() => [error_1.ErrorResponse], { nullable: true }),
+    __metadata("design:type", Array)
+], MovieRankingResponse.prototype, "errors", void 0);
+MovieRankingResponse = __decorate([
+    type_graphql_1.ObjectType()
+], MovieRankingResponse);
+exports.MovieRankingResponse = MovieRankingResponse;
 let MovieResponse = class MovieResponse {
 };
 __decorate([
@@ -78,6 +108,10 @@ __decorate([
     type_graphql_1.Field(() => [String]),
     __metadata("design:type", Array)
 ], CreateMovieInput.prototype, "genres", void 0);
+__decorate([
+    type_graphql_1.Field(() => [CharacterInput], { nullable: true }),
+    __metadata("design:type", Array)
+], CreateMovieInput.prototype, "characters", void 0);
 CreateMovieInput = __decorate([
     type_graphql_1.InputType()
 ], CreateMovieInput);
@@ -100,6 +134,10 @@ __decorate([
     type_graphql_1.Field(() => [String]),
     __metadata("design:type", Array)
 ], UpdateMovieInput.prototype, "genres", void 0);
+__decorate([
+    type_graphql_1.Field(() => [CharacterInput], { nullable: true }),
+    __metadata("design:type", Array)
+], UpdateMovieInput.prototype, "characters", void 0);
 UpdateMovieInput = __decorate([
     type_graphql_1.InputType()
 ], UpdateMovieInput);
@@ -170,10 +208,6 @@ __decorate([
     __metadata("design:type", String)
 ], CreateMovieInformationInput.prototype, "movie", void 0);
 __decorate([
-    type_graphql_1.Field(() => [CharacterInput], { nullable: true }),
-    __metadata("design:type", Array)
-], CreateMovieInformationInput.prototype, "characters", void 0);
-__decorate([
     type_graphql_1.Field(() => String, { nullable: true }),
     __metadata("design:type", String)
 ], CreateMovieInformationInput.prototype, "synopsis", void 0);
@@ -215,10 +249,6 @@ __decorate([
     type_graphql_1.Field(() => String),
     __metadata("design:type", String)
 ], UpdateMovieInformationInput.prototype, "movie", void 0);
-__decorate([
-    type_graphql_1.Field(() => [CharacterInput], { nullable: true }),
-    __metadata("design:type", Array)
-], UpdateMovieInformationInput.prototype, "characters", void 0);
 __decorate([
     type_graphql_1.Field(() => String, { nullable: true }),
     __metadata("design:type", String)

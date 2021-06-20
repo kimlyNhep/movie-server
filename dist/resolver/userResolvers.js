@@ -34,6 +34,16 @@ const bcryptjs_1 = require("bcryptjs");
 const class_validator_1 = require("class-validator");
 const typeorm_1 = require("typeorm");
 const fs_1 = require("fs");
+const helper_1 = require("../utils/helper");
+let NumberUserType = class NumberUserType {
+};
+__decorate([
+    type_graphql_1.Field(() => Number),
+    __metadata("design:type", Number)
+], NumberUserType.prototype, "total", void 0);
+NumberUserType = __decorate([
+    type_graphql_1.ObjectType()
+], NumberUserType);
 let userResolvers = class userResolvers {
     me({ payload }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -41,18 +51,35 @@ let userResolvers = class userResolvers {
             return user;
         });
     }
-    register(options, photo) {
+    getTotalUsers() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const numberOfUser = yield typeorm_1.getRepository(User_1.User)
+                .createQueryBuilder()
+                .getCount();
+            return {
+                total: numberOfUser,
+            };
+        });
+    }
+    register({ res }, options, photo) {
         return __awaiter(this, void 0, void 0, function* () {
             const hashedPassword = yield bcryptjs_1.hash(options.password, 12);
             try {
-                const { createReadStream, filename } = photo;
-                createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/profile/${filename}`));
+                let fileName;
+                if (photo) {
+                    const { createReadStream, filename } = photo;
+                    fileName = filename;
+                    createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/profile/${filename}`));
+                }
+                else {
+                    fileName = 'default.png';
+                }
                 const user = new User_1.User();
                 user.email = options.email;
                 user.username = options.username;
                 user.role = options.role || enumType_1.UserRoles.Member;
                 user.password = hashedPassword;
-                user.photo = `${process.env.HOST}/profile/${filename}`;
+                user.photo = `${helper_1.getEnvHost()}/profile/${fileName}`;
                 const errors = yield class_validator_1.validate(user);
                 if (errors.length > 0) {
                     return {
@@ -65,8 +92,10 @@ let userResolvers = class userResolvers {
                 }
                 else {
                     yield typeorm_1.getManager().save(user);
+                    sendRefreshToken_1.sendRefreshToken(res, token_1.accessToken(user));
                     return {
                         user,
+                        accessToken: token_1.accessToken(user),
                     };
                 }
             }
@@ -127,77 +156,6 @@ let userResolvers = class userResolvers {
             resolve(true);
         });
     }
-    createCharacter(options, photo) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const hashedPassword = yield bcryptjs_1.hash(options.password, 12);
-            try {
-                const { createReadStream, filename } = photo;
-                createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/profile/${filename}`));
-                const user = new User_1.User();
-                user.email = options.email;
-                user.username = options.username;
-                user.role = options.role || enumType_1.UserRoles.Character;
-                user.password = hashedPassword;
-                user.photo = `${process.env.HOST}/profile/${filename}`;
-                const errors = yield class_validator_1.validate(user);
-                if (errors.length > 0) {
-                    return {
-                        errors: errors.map((error) => {
-                            const { constraints, property } = error;
-                            const key = Object.keys(constraints)[0];
-                            return { field: property, message: constraints[key] };
-                        }),
-                    };
-                }
-                else {
-                    yield typeorm_1.getManager().save(user);
-                    return {
-                        user,
-                    };
-                }
-            }
-            catch (err) {
-                const { code } = err;
-                if (code === '23505') {
-                    const start = err.detail.indexOf('(');
-                    const end = err.detail.indexOf(')');
-                    return {
-                        errors: [
-                            {
-                                field: err.detail.substring(start + 1, end),
-                                message: 'Already exist!',
-                            },
-                        ],
-                    };
-                }
-                return {
-                    errors: err,
-                };
-            }
-        });
-    }
-    getAllCharacter() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const users = yield typeorm_1.getConnection()
-                .createQueryBuilder()
-                .select('user')
-                .from(User_1.User, 'user')
-                .where('user.role = :role', { role: enumType_1.UserRoles.Character })
-                .getMany();
-            if (!users) {
-                return {
-                    errors: [
-                        {
-                            message: "User doesn't exist",
-                        },
-                    ],
-                };
-            }
-            return {
-                users: users,
-            };
-        });
-    }
 };
 __decorate([
     type_graphql_1.Query(() => User_1.User, { nullable: true }),
@@ -208,11 +166,18 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], userResolvers.prototype, "me", null);
 __decorate([
-    type_graphql_1.Mutation(() => user_1.RegisterResponse),
-    __param(0, type_graphql_1.Arg('options')),
-    __param(1, type_graphql_1.Arg('photo', () => graphql_upload_1.GraphQLUpload, { nullable: true })),
+    type_graphql_1.Query(() => NumberUserType),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [user_1.UserRegisterInput, Object]),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], userResolvers.prototype, "getTotalUsers", null);
+__decorate([
+    type_graphql_1.Mutation(() => user_1.RegisterResponse),
+    __param(0, type_graphql_1.Ctx()),
+    __param(1, type_graphql_1.Arg('options')),
+    __param(2, type_graphql_1.Arg('photo', () => graphql_upload_1.GraphQLUpload, { nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, user_1.UserRegisterInput, Object]),
     __metadata("design:returntype", Promise)
 ], userResolvers.prototype, "register", null);
 __decorate([
@@ -230,20 +195,6 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], userResolvers.prototype, "logout", null);
-__decorate([
-    type_graphql_1.Mutation(() => user_1.RegisterResponse),
-    __param(0, type_graphql_1.Arg('options')),
-    __param(1, type_graphql_1.Arg('photo', () => graphql_upload_1.GraphQLUpload)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [user_1.UserRegisterInput, Object]),
-    __metadata("design:returntype", Promise)
-], userResolvers.prototype, "createCharacter", null);
-__decorate([
-    type_graphql_1.Query(() => user_1.UsersResponse),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], userResolvers.prototype, "getAllCharacter", null);
 userResolvers = __decorate([
     type_graphql_1.Resolver()
 ], userResolvers);

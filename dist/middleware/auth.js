@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isMember = exports.isAdmin = exports.isAuth = void 0;
+exports.isMember = exports.isAdmin = exports.isLogged = exports.isAuth = void 0;
 const enumType_1 = require("../enumType");
 const User_1 = require("../entity/User");
 const jsonwebtoken_1 = require("jsonwebtoken");
@@ -28,6 +28,21 @@ const isAuth = ({ context }, next) => {
     return next();
 };
 exports.isAuth = isAuth;
+const isLogged = ({ context }, next) => {
+    const authorization = context.req.headers['authorization'];
+    try {
+        const token = authorization === null || authorization === void 0 ? void 0 : authorization.split(' ')[1];
+        if (token) {
+            const payload = jsonwebtoken_1.verify(token, process.env.ACCESS_TOKEN_SECRET);
+            context.payload = payload;
+        }
+    }
+    catch (_a) {
+        context.payload = undefined;
+    }
+    return next();
+};
+exports.isLogged = isLogged;
 const isAdmin = ({ context }, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { token } = context.req.cookies;
     const { id } = jsonwebtoken_1.decode(token);

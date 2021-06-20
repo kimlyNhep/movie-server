@@ -10,12 +10,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Movie = void 0;
+const MovieState_1 = require("./MovieState");
+const Comment_1 = require("./Comment");
 const Genre_1 = require("./Genre");
 const MovieInfo_1 = require("./MovieInfo");
 const type_graphql_1 = require("type-graphql");
 const User_1 = require("./User");
 const typeorm_1 = require("typeorm");
 const RatingMovies_1 = require("./RatingMovies");
+const MovieCharacters_1 = require("./MovieCharacters");
 let Movie = class Movie extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -63,6 +66,37 @@ __decorate([
     }),
     __metadata("design:type", Array)
 ], Movie.prototype, "ratingMovies", void 0);
+__decorate([
+    type_graphql_1.Field(() => [Comment_1.Comment], { nullable: true }),
+    typeorm_1.OneToMany(() => Comment_1.Comment, (comment) => comment.movie, {
+        nullable: true,
+    }),
+    __metadata("design:type", Array)
+], Movie.prototype, "comment", void 0);
+__decorate([
+    type_graphql_1.Field(() => [MovieCharacters_1.MovieCharacters], { nullable: true }),
+    typeorm_1.OneToMany(() => MovieCharacters_1.MovieCharacters, (movieCharacter) => movieCharacter.movie, {
+        nullable: true,
+    }),
+    __metadata("design:type", Array)
+], Movie.prototype, "movieCharacters", void 0);
+__decorate([
+    type_graphql_1.Field(() => Number, { nullable: true }),
+    typeorm_1.Column({ nullable: true, type: 'float' }),
+    __metadata("design:type", Number)
+], Movie.prototype, "point", void 0);
+__decorate([
+    type_graphql_1.Field(() => [MovieState_1.MovieState], { nullable: true }),
+    typeorm_1.OneToMany(() => MovieState_1.MovieState, (movieState) => movieState.movie, {
+        nullable: true,
+    }),
+    __metadata("design:type", Array)
+], Movie.prototype, "movieState", void 0);
+__decorate([
+    type_graphql_1.Field(() => type_graphql_1.Int, { defaultValue: 0 }),
+    typeorm_1.Column({ default: 0 }),
+    __metadata("design:type", Number)
+], Movie.prototype, "rank", void 0);
 Movie = __decorate([
     type_graphql_1.ObjectType(),
     typeorm_1.Entity()

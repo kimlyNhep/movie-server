@@ -22,9 +22,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.movieResolvers = void 0;
-const MovieCharacters_1 = require("../entity/MovieCharacters");
+const helper_1 = require("./../utils/helper");
+const MovieCharacters_1 = require("./../entity/MovieCharacters");
+const Character_1 = require("./../entity/Character");
 const auth_1 = require("./../middleware/auth");
-const MovieInfo_1 = require("./../entity/MovieInfo");
 const Genre_1 = require("./../entity/Genre");
 const User_1 = require("./../entity/User");
 const Movie_1 = require("./../entity/Movie");
@@ -32,108 +33,7 @@ const movie_1 = require("./../types/movie");
 const type_graphql_1 = require("type-graphql");
 const class_validator_1 = require("class-validator");
 const typeorm_1 = require("typeorm");
-const jsonwebtoken_1 = require("jsonwebtoken");
 let movieResolvers = class movieResolvers {
-    updateMovieInfo(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let info = yield typeorm_1.getConnection()
-                .createQueryBuilder()
-                .select('info')
-                .from(MovieInfo_1.MovieInfo, 'info')
-                .where('info.movie = :id', { id: options.movie })
-                .getOne();
-            if (!info) {
-                const movie = yield Movie_1.Movie.findOne({ where: { id: options.movie } });
-                if (!movie) {
-                    return {
-                        errors: [
-                            {
-                                field: 'id',
-                                message: "Movie doesn't exist",
-                            },
-                        ],
-                    };
-                }
-                info = new MovieInfo_1.MovieInfo();
-                info.movie = movie;
-            }
-            let characters;
-            if (options.characters) {
-                characters = yield typeorm_1.getRepository(User_1.User).findByIds(options.characters);
-                if (characters.length < options.characters.length)
-                    return {
-                        errors: [
-                            {
-                                message: "Character doesn't exist",
-                            },
-                        ],
-                    };
-            }
-            const characterWithRole = characters === null || characters === void 0 ? void 0 : characters.map((item, index) => {
-                if (item.id === options.characters[index].id) {
-                    return { character: item, role: options.characters[index].role };
-                }
-                return null;
-            });
-            const queryRunner = typeorm_1.getConnection().createQueryRunner();
-            yield queryRunner.connect();
-            yield queryRunner.startTransaction();
-            try {
-                info.type = options.type;
-                info.producer = options.producer;
-                info.episode = options.episode;
-                info.duration = options.durations;
-                info.status = options.status;
-                info.released_date = options.released_date;
-                info.synopsis = options.synopsis;
-                info.backgroundInfo = options.backgroundInfo;
-                const newMovieInfo = queryRunner.manager.create(MovieInfo_1.MovieInfo, info);
-                yield queryRunner.manager.update(MovieInfo_1.MovieInfo, info.id, info);
-                const errors = yield class_validator_1.validate(info);
-                if (errors.length > 0) {
-                    return {
-                        errors: errors.map((error) => {
-                            const { constraints, property } = error;
-                            const key = Object.keys(constraints)[0];
-                            return { field: property, message: constraints[key] };
-                        }),
-                    };
-                }
-                else {
-                    yield typeorm_1.getConnection()
-                        .createQueryBuilder()
-                        .delete()
-                        .from(MovieCharacters_1.MovieCharacters)
-                        .where('movieinfoId = :id', { id: info.id })
-                        .execute();
-                    for (const [, value] of Object.entries(characterWithRole)) {
-                        const moviesCharacters = new MovieCharacters_1.MovieCharacters();
-                        moviesCharacters.movieInfo = newMovieInfo;
-                        moviesCharacters.characters = value.character;
-                        moviesCharacters.role = value.role;
-                        const newMoviesCharacters = queryRunner.manager.create(MovieCharacters_1.MovieCharacters, moviesCharacters);
-                        yield queryRunner.manager.save(newMoviesCharacters);
-                    }
-                    yield queryRunner.commitTransaction();
-                    return {
-                        info,
-                    };
-                }
-            }
-            catch (err) {
-                yield queryRunner.rollbackTransaction();
-                return {
-                    errors: [
-                        {
-                            message: 'fail',
-                        },
-                    ],
-                };
-            }
-            finally {
-            }
-        });
-    }
     updateMovie(options) {
         return __awaiter(this, void 0, void 0, function* () {
             const movie = yield Movie_1.Movie.findOne({ where: { id: options.id } });
@@ -155,6 +55,24 @@ let movieResolvers = class movieResolvers {
                         },
                     ],
                 };
+            let characters;
+            if (options.characters) {
+                characters = yield typeorm_1.getRepository(Character_1.Character).findByIds(options.characters);
+                if (characters.length < options.characters.length)
+                    return {
+                        errors: [
+                            {
+                                message: "Character doesn't exist",
+                            },
+                        ],
+                    };
+            }
+            const characterWithRole = characters === null || characters === void 0 ? void 0 : characters.map((item, index) => {
+                if (item.id === options.characters[index].id) {
+                    return { character: item, role: options.characters[index].role };
+                }
+                return null;
+            });
             movie.title = options.title;
             movie.description = options.description;
             movie.genres = genres;
@@ -169,13 +87,33 @@ let movieResolvers = class movieResolvers {
                 };
             }
             else {
+                const queryRunner = typeorm_1.getConnection().createQueryRunner();
+                yield queryRunner.connect();
+                yield queryRunner.startTransaction();
                 try {
-                    yield typeorm_1.getConnection().manager.save(movie);
+                    const newMovie = queryRunner.manager.create(Movie_1.Movie, movie);
+                    yield queryRunner.manager.save(newMovie);
+                    yield typeorm_1.getConnection()
+                        .createQueryBuilder()
+                        .delete()
+                        .from(MovieCharacters_1.MovieCharacters)
+                        .where('movieId = :id', { id: options.id })
+                        .execute();
+                    for (const [, value] of Object.entries(characterWithRole)) {
+                        const moviesCharacters = new MovieCharacters_1.MovieCharacters();
+                        moviesCharacters.movie = newMovie;
+                        moviesCharacters.character = value.character;
+                        moviesCharacters.role = value.role;
+                        const newMoviesCharacters = queryRunner.manager.create(MovieCharacters_1.MovieCharacters, moviesCharacters);
+                        yield queryRunner.manager.save(newMoviesCharacters);
+                    }
+                    yield queryRunner.commitTransaction();
                     return {
-                        movie,
+                        movie: newMovie,
                     };
                 }
                 catch (err) {
+                    queryRunner.rollbackTransaction();
                     const { code } = err;
                     if (code === '23505') {
                         const start = err.detail.indexOf('(');
@@ -196,11 +134,9 @@ let movieResolvers = class movieResolvers {
             }
         });
     }
-    createMovie({ req }, options) {
+    createMovie({ payload }, options) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { token } = req.cookies;
-            const { id } = jsonwebtoken_1.decode(token);
-            const user = yield User_1.User.findOne({ where: { id } });
+            const user = yield User_1.User.findOne({ where: { id: payload === null || payload === void 0 ? void 0 : payload.id } });
             if (!user) {
                 return {
                     errors: [
@@ -224,6 +160,26 @@ let movieResolvers = class movieResolvers {
             movie.description = options.description;
             movie.creator = user;
             movie.genres = genres;
+            movie.point = 0;
+            movie.photo = `${helper_1.getEnvHost()}/images/default.png`;
+            let characters;
+            if (options.characters) {
+                characters = yield typeorm_1.getRepository(Character_1.Character).findByIds(options.characters.map((item) => item.id));
+                if (characters.length < options.characters.length)
+                    return {
+                        errors: [
+                            {
+                                message: "Character doesn't exist",
+                            },
+                        ],
+                    };
+            }
+            const characterWithRole = characters === null || characters === void 0 ? void 0 : characters.map((item, index) => {
+                if (item.id === options.characters[index].id) {
+                    return { character: item, role: options.characters[index].role };
+                }
+                return null;
+            });
             const errors = yield class_validator_1.validate(movie);
             if (errors.length > 0) {
                 return {
@@ -235,13 +191,27 @@ let movieResolvers = class movieResolvers {
                 };
             }
             else {
+                const queryRunner = typeorm_1.getConnection().createQueryRunner();
+                yield queryRunner.connect();
+                yield queryRunner.startTransaction();
                 try {
-                    yield typeorm_1.getConnection().manager.save(movie);
+                    const newMovie = queryRunner.manager.create(Movie_1.Movie, movie);
+                    yield queryRunner.manager.save(newMovie);
+                    for (const [, value] of Object.entries(characterWithRole)) {
+                        const moviesCharacters = new MovieCharacters_1.MovieCharacters();
+                        moviesCharacters.movie = newMovie;
+                        moviesCharacters.character = value.character;
+                        moviesCharacters.role = value.role;
+                        const newMoviesCharacters = queryRunner.manager.create(MovieCharacters_1.MovieCharacters, moviesCharacters);
+                        yield queryRunner.manager.save(newMoviesCharacters);
+                    }
+                    yield queryRunner.commitTransaction();
                     return {
-                        movie,
+                        movie: newMovie,
                     };
                 }
                 catch (err) {
+                    queryRunner.rollbackTransaction();
                     const { code } = err;
                     if (code === '23505') {
                         const start = err.detail.indexOf('(');
@@ -259,92 +229,9 @@ let movieResolvers = class movieResolvers {
                         errors: err,
                     };
                 }
-            }
-        });
-    }
-    createMovieInformation(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const movie = yield Movie_1.Movie.findOne({ where: { id: options.movie } });
-            if (!movie) {
-                return {
-                    errors: [
-                        {
-                            message: 'Movie not exist',
-                        },
-                    ],
-                };
-            }
-            let characters;
-            if (options.characters) {
-                characters = yield typeorm_1.getRepository(User_1.User).findByIds(options.characters.map((item) => item.id));
-                if (characters.length < options.characters.length)
-                    return {
-                        errors: [
-                            {
-                                message: "Character doesn't exist",
-                            },
-                        ],
-                    };
-            }
-            const characterWithRole = characters === null || characters === void 0 ? void 0 : characters.map((item, index) => {
-                if (item.id === options.characters[index].id) {
-                    return { character: item, role: options.characters[index].role };
+                finally {
+                    yield queryRunner.release();
                 }
-                return null;
-            });
-            const queryRunner = typeorm_1.getConnection().createQueryRunner();
-            yield queryRunner.connect();
-            yield queryRunner.startTransaction();
-            try {
-                let movieInfo = new MovieInfo_1.MovieInfo();
-                movieInfo.type = options.type;
-                movieInfo.producer = options.producer;
-                movieInfo.episode = options.episode;
-                movieInfo.duration = options.durations;
-                movieInfo.status = options.status;
-                movieInfo.released_date = options.released_date;
-                movieInfo.synopsis = options.synopsis;
-                movieInfo.backgroundInfo = options.backgroundInfo;
-                movieInfo.movie = movie;
-                const newMovieInfo = queryRunner.manager.create(MovieInfo_1.MovieInfo, movieInfo);
-                yield queryRunner.manager.save(newMovieInfo);
-                const errors = yield class_validator_1.validate(movieInfo);
-                if (errors.length > 0) {
-                    return {
-                        errors: errors.map((error) => {
-                            const { constraints, property } = error;
-                            const key = Object.keys(constraints)[0];
-                            return { field: property, message: constraints[key] };
-                        }),
-                    };
-                }
-                else {
-                    for (const [, value] of Object.entries(characterWithRole)) {
-                        const moviesCharacters = new MovieCharacters_1.MovieCharacters();
-                        moviesCharacters.movieInfo = newMovieInfo;
-                        moviesCharacters.characters = value.character;
-                        moviesCharacters.role = value.role;
-                        const newMoviesCharacters = queryRunner.manager.create(MovieCharacters_1.MovieCharacters, moviesCharacters);
-                        yield queryRunner.manager.save(newMoviesCharacters);
-                    }
-                    yield queryRunner.commitTransaction();
-                    return {
-                        info: newMovieInfo,
-                    };
-                }
-            }
-            catch (err) {
-                yield queryRunner.rollbackTransaction();
-                return {
-                    errors: [
-                        {
-                            message: 'fail',
-                        },
-                    ],
-                };
-            }
-            finally {
-                yield queryRunner.release();
             }
         });
     }
@@ -358,10 +245,14 @@ let movieResolvers = class movieResolvers {
                 .innerJoinAndSelect('movie.creator', 'creator')
                 .innerJoinAndSelect('movie.genres', 'genres')
                 .leftJoinAndSelect('movie.ratingMovies', 'ratingMovies')
+                .leftJoinAndSelect('movie.comment', 'comment')
+                .leftJoinAndSelect('comment.user', 'users')
+                .leftJoinAndSelect('movie.movieCharacters', 'movieCharacters')
+                .leftJoinAndSelect('movieCharacters.character', 'characters')
                 .leftJoinAndSelect('ratingMovies.user', 'ratedUsers')
                 .leftJoinAndSelect('movie.info', 'info')
-                .leftJoinAndSelect('info.movieCharacters', 'movieCharacters')
-                .leftJoinAndSelect('movieCharacters.characters', 'characters')
+                .leftJoinAndSelect('movie.movieState', 'movieState')
+                .orderBy('comment.createdAt', 'ASC')
                 .getOne();
             if (!movieQuery) {
                 return {
@@ -381,12 +272,33 @@ let movieResolvers = class movieResolvers {
     getMovies() {
         return __awaiter(this, void 0, void 0, function* () {
             const moviesQuery = yield typeorm_1.getConnection()
+                .createQueryBuilder(Movie_1.Movie, 'movie')
+                .innerJoinAndSelect('movie.creator', 'creator')
+                .innerJoinAndSelect('movie.genres', 'genres')
+                .leftJoinAndSelect('movie.ratingMovies', 'ratingMovies')
+                .leftJoinAndSelect('movie.comment', 'comment')
+                .leftJoinAndSelect('comment.user', 'users')
+                .leftJoinAndSelect('movie.movieCharacters', 'movieCharacters')
+                .leftJoinAndSelect('movieCharacters.character', 'characters')
+                .leftJoinAndSelect('ratingMovies.user', 'ratedUsers')
+                .leftJoinAndSelect('movie.info', 'info')
+                .getMany();
+            return {
+                movies: moviesQuery,
+            };
+        });
+    }
+    getMoviesByYear(year) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const moviesQuery = yield typeorm_1.getConnection()
                 .createQueryBuilder()
                 .select('movie')
                 .from(Movie_1.Movie, 'movie')
+                .orderBy('movie.title', 'ASC')
                 .innerJoinAndSelect('movie.creator', 'creator')
                 .innerJoinAndSelect('movie.genres', 'genres')
                 .leftJoinAndSelect('movie.info', 'info')
+                .where(`info.released_date like '%${year}%'`)
                 .leftJoinAndSelect('info.movieCharacters', 'movieCharacters')
                 .leftJoinAndSelect('movieCharacters.characters', 'characters')
                 .getMany();
@@ -395,14 +307,54 @@ let movieResolvers = class movieResolvers {
             };
         });
     }
+    getRankingMovies() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const moviesQuery = yield typeorm_1.getConnection()
+                .createQueryBuilder(Movie_1.Movie, 'movie')
+                .innerJoinAndSelect('movie.creator', 'creator')
+                .innerJoinAndSelect('movie.genres', 'genres')
+                .leftJoinAndSelect('movie.ratingMovies', 'ratingMovies')
+                .leftJoinAndSelect('movie.comment', 'comment')
+                .leftJoinAndSelect('comment.user', 'users')
+                .leftJoinAndSelect('movie.movieCharacters', 'movieCharacters')
+                .leftJoinAndSelect('movieCharacters.character', 'characters')
+                .leftJoinAndSelect('ratingMovies.user', 'ratedUsers')
+                .leftJoinAndSelect('movie.info', 'info')
+                .orderBy('movie.point', 'DESC')
+                .getMany();
+            const movies = moviesQuery.map((item, index) => ({
+                rankingMovie: item,
+                rank: index + 1,
+            }));
+            return {
+                movies,
+            };
+        });
+    }
+    getMoviesByUser({ payload }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const movies = yield typeorm_1.getConnection()
+                .createQueryBuilder(Movie_1.Movie, 'movie')
+                .where('movie.creatorId = :uid', { uid: payload === null || payload === void 0 ? void 0 : payload.id })
+                .getMany();
+            return {
+                movies,
+            };
+        });
+    }
+    getTopMovies() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const movies = yield typeorm_1.getConnection()
+                .createQueryBuilder(Movie_1.Movie, 'movie')
+                .orderBy('movie.rank', 'ASC')
+                .limit(5)
+                .getMany();
+            return {
+                movies,
+            };
+        });
+    }
 };
-__decorate([
-    type_graphql_1.Mutation(() => movie_1.MovieInfoResponse),
-    __param(0, type_graphql_1.Arg('options')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [movie_1.UpdateMovieInformationInput]),
-    __metadata("design:returntype", Promise)
-], movieResolvers.prototype, "updateMovieInfo", null);
 __decorate([
     type_graphql_1.Mutation(() => movie_1.MovieResponse),
     __param(0, type_graphql_1.Arg('options')),
@@ -420,14 +372,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], movieResolvers.prototype, "createMovie", null);
 __decorate([
-    type_graphql_1.Mutation(() => movie_1.MovieInfoResponse),
-    type_graphql_1.UseMiddleware(auth_1.isAuth),
-    __param(0, type_graphql_1.Arg('options')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [movie_1.CreateMovieInformationInput]),
-    __metadata("design:returntype", Promise)
-], movieResolvers.prototype, "createMovieInformation", null);
-__decorate([
     type_graphql_1.Query(() => movie_1.MovieResponse),
     __param(0, type_graphql_1.Arg('id')),
     __metadata("design:type", Function),
@@ -440,6 +384,33 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], movieResolvers.prototype, "getMovies", null);
+__decorate([
+    type_graphql_1.Query(() => movie_1.MoviesResponse),
+    __param(0, type_graphql_1.Arg('year')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], movieResolvers.prototype, "getMoviesByYear", null);
+__decorate([
+    type_graphql_1.Query(() => movie_1.MovieRankingResponse),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], movieResolvers.prototype, "getRankingMovies", null);
+__decorate([
+    type_graphql_1.Query(() => movie_1.MoviesResponse),
+    type_graphql_1.UseMiddleware(auth_1.isAuth),
+    __param(0, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], movieResolvers.prototype, "getMoviesByUser", null);
+__decorate([
+    type_graphql_1.Query(() => movie_1.MoviesResponse),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], movieResolvers.prototype, "getTopMovies", null);
 movieResolvers = __decorate([
     type_graphql_1.Resolver()
 ], movieResolvers);

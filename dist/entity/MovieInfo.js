@@ -15,7 +15,6 @@ const enumType_1 = require("./../enumType");
 const class_validator_1 = require("class-validator");
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
-const MovieCharacters_1 = require("./MovieCharacters");
 let MovieInfo = class MovieInfo extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -79,13 +78,6 @@ __decorate([
     typeorm_1.JoinColumn(),
     __metadata("design:type", Movie_1.Movie)
 ], MovieInfo.prototype, "movie", void 0);
-__decorate([
-    type_graphql_1.Field(() => [MovieCharacters_1.MovieCharacters], { nullable: true }),
-    typeorm_1.OneToMany(() => MovieCharacters_1.MovieCharacters, (movieCharacter) => movieCharacter.movieInfo, {
-        nullable: true,
-    }),
-    __metadata("design:type", Array)
-], MovieInfo.prototype, "movieCharacters", void 0);
 MovieInfo = __decorate([
     type_graphql_1.ObjectType(),
     typeorm_1.Entity()

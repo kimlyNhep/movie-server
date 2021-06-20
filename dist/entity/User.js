@@ -10,13 +10,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
+const MovieState_1 = require("./MovieState");
 const Movie_1 = require("./Movie");
 const enumType_1 = require("./../enumType");
 const class_validator_1 = require("class-validator");
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
-const MovieCharacters_1 = require("./MovieCharacters");
 const RatingMovies_1 = require("./RatingMovies");
+const Comment_1 = require("./Comment");
 let User = class User extends typeorm_1.BaseEntity {
 };
 __decorate([
@@ -25,9 +26,9 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "id", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field({ nullable: true }),
     class_validator_1.IsEmail({}, { message: 'Invalid Email Format!' }),
-    typeorm_1.Column('text', { nullable: false, unique: true }),
+    typeorm_1.Column('text', { nullable: true, unique: true }),
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
@@ -59,19 +60,33 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "photo", void 0);
 __decorate([
-    type_graphql_1.Field(() => [MovieCharacters_1.MovieCharacters], { nullable: true }),
-    typeorm_1.OneToMany(() => MovieCharacters_1.MovieCharacters, (movieCharacter) => movieCharacter.characters, {
-        nullable: true,
-    }),
-    __metadata("design:type", Array)
-], User.prototype, "movieCharacters", void 0);
-__decorate([
     type_graphql_1.Field(() => [RatingMovies_1.RatingMovies], { nullable: true }),
     typeorm_1.OneToMany(() => RatingMovies_1.RatingMovies, (ratingMovie) => ratingMovie.user, {
         nullable: true,
     }),
     __metadata("design:type", Array)
 ], User.prototype, "ratingMovies", void 0);
+__decorate([
+    type_graphql_1.Field(() => [Comment_1.Comment], { nullable: true }),
+    typeorm_1.OneToMany(() => Comment_1.Comment, (comment) => comment.user, {
+        nullable: true,
+    }),
+    __metadata("design:type", Array)
+], User.prototype, "comment", void 0);
+__decorate([
+    type_graphql_1.Field(() => [MovieState_1.MovieState], { nullable: true }),
+    typeorm_1.OneToMany(() => MovieState_1.MovieState, (movieState) => movieState.user, {
+        nullable: true,
+    }),
+    __metadata("design:type", Array)
+], User.prototype, "movieState", void 0);
+__decorate([
+    typeorm_1.CreateDateColumn({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP(6)',
+    }),
+    __metadata("design:type", Date)
+], User.prototype, "createdAt", void 0);
 User = __decorate([
     type_graphql_1.ObjectType(),
     typeorm_1.Entity()
