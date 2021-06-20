@@ -44,13 +44,25 @@ export const isAdmin: MiddlewareFn<MovieContext> = async (
   { context },
   next
 ) => {
-  const { token } = context.req.cookies;
-  const { id } = <IToken>decode(token);
+  const authorization = context.req.headers['authorization'];
 
-  const user = await User.findOne({ where: { id } });
-  if (user?.role !== UserRoles.Admin)
-    throw new Error('You do not have a permission');
-  else return next();
+  if (!authorization) throw new Error('Not Authenticated');
+
+  try {
+    const token = authorization.split(' ')[1];
+    const payload = verify(token, process.env.ACCESS_TOKEN_SECRET!) as {
+      id: string;
+    };
+    context.payload = payload as { id: string };
+    const user = await User.findOne({ where: { id: payload?.id } });
+    if (user?.role !== UserRoles.Admin)
+      throw new Error('You do not have a permission');
+    else return next();
+  } catch {
+    throw new Error('Not Authenticated');
+  }
+
+  return next();
 };
 
 export const isMember: MiddlewareFn<MovieContext> = async (

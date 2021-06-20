@@ -29,7 +29,7 @@ const type_graphql_1 = require("type-graphql");
 const class_validator_1 = require("class-validator");
 const typeorm_1 = require("typeorm");
 let genreResolvers = class genreResolvers {
-    createGenre(name) {
+    createGenre(name, { payload }) {
         return __awaiter(this, void 0, void 0, function* () {
             const genre = new Genre_1.Genre();
             genre.name = name;
@@ -88,8 +88,9 @@ __decorate([
     type_graphql_1.Mutation(() => genre_1.GenreResponse),
     type_graphql_1.UseMiddleware(auth_1.isAuth, auth_1.isAdmin),
     __param(0, type_graphql_1.Arg('name')),
+    __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], genreResolvers.prototype, "createGenre", null);
 __decorate([

@@ -1,7 +1,15 @@
+import { MovieContext } from './../MovieContext';
 import { isAuth, isAdmin } from './../middleware/auth';
 import { GenreResponse, GenresResponse } from './../types/genre';
 import { Genre } from './../entity/Genre';
-import { Arg, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql';
+import {
+  Arg,
+  Ctx,
+  Mutation,
+  Query,
+  Resolver,
+  UseMiddleware,
+} from 'type-graphql';
 import { validate } from 'class-validator';
 import { getConnection, getManager } from 'typeorm';
 
@@ -9,7 +17,10 @@ import { getConnection, getManager } from 'typeorm';
 export class genreResolvers {
   @Mutation(() => GenreResponse)
   @UseMiddleware(isAuth, isAdmin)
-  async createGenre(@Arg('name') name: string): Promise<GenreResponse> {
+  async createGenre(
+    @Arg('name') name: string,
+    @Ctx() { payload }: MovieContext
+  ): Promise<GenreResponse> {
     const genre = new Genre();
     genre.name = name;
 

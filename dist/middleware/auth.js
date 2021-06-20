@@ -44,13 +44,23 @@ const isLogged = ({ context }, next) => {
 };
 exports.isLogged = isLogged;
 const isAdmin = ({ context }, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { token } = context.req.cookies;
-    const { id } = jsonwebtoken_1.decode(token);
-    const user = yield User_1.User.findOne({ where: { id } });
-    if ((user === null || user === void 0 ? void 0 : user.role) !== enumType_1.UserRoles.Admin)
-        throw new Error('You do not have a permission');
-    else
-        return next();
+    const authorization = context.req.headers['authorization'];
+    if (!authorization)
+        throw new Error('Not Authenticated');
+    try {
+        const token = authorization.split(' ')[1];
+        const payload = jsonwebtoken_1.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        context.payload = payload;
+        const user = yield User_1.User.findOne({ where: { id: payload === null || payload === void 0 ? void 0 : payload.id } });
+        if ((user === null || user === void 0 ? void 0 : user.role) !== enumType_1.UserRoles.Admin)
+            throw new Error('You do not have a permission');
+        else
+            return next();
+    }
+    catch (_a) {
+        throw new Error('Not Authenticated');
+    }
+    return next();
 });
 exports.isAdmin = isAdmin;
 const isMember = ({ context }, next) => __awaiter(void 0, void 0, void 0, function* () {

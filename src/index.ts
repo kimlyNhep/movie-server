@@ -80,6 +80,8 @@ const app = async () => {
     //   connectionOptions = await getConnectionOptions('production');
     // else connectionOptions = await getConnectionOptions('default');
 
+    // await createConnection(connectionOptions);
+
     await createConnection({
       type: 'postgres',
       host: 'ec2-54-205-183-19.compute-1.amazonaws.com',
