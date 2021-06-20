@@ -81,7 +81,6 @@ const app = async () => {
     // else connectionOptions = await getConnectionOptions('default');
 
     await createConnection({
-      name: 'production',
       type: 'postgres',
       host: 'ec2-54-205-183-19.compute-1.amazonaws.com',
       port: 5432,
