@@ -8,7 +8,7 @@ import { accessToken } from './token';
 import { User } from './entity/User';
 import { verify } from 'jsonwebtoken';
 import { MovieContext } from './MovieContext';
-import { createConnection, getConnectionOptions } from 'typeorm';
+import { createConnection } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { sendRefreshToken } from './sendRefreshToken';
