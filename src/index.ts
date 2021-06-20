@@ -75,12 +75,32 @@ const app = async () => {
   });
 
   try {
-    let connectionOptions = await getConnectionOptions();
-    if (process.env.NODE_ENV === 'production')
-      connectionOptions = await getConnectionOptions('production');
-    else connectionOptions = await getConnectionOptions('default');
+    // let connectionOptions = await getConnectionOptions();
+    // if (process.env.NODE_ENV === 'production')
+    //   connectionOptions = await getConnectionOptions('production');
+    // else connectionOptions = await getConnectionOptions('default');
 
-    await createConnection(connectionOptions);
+    await createConnection({
+      name: 'production',
+      type: 'postgres',
+      host: 'ec2-54-205-183-19.compute-1.amazonaws.com',
+      port: 5432,
+      username: 'joytkawnlpwdcq',
+      password:
+        '546c039124795af20e024347182ea9b8b280a28bf281714bae1fc2b42748b6ee',
+      database: 'ddrgs892vhn6ak',
+      synchronize: false,
+      logging: false,
+      entities: ['dist/entity/**/*.js'],
+      migrations: ['dist/migration/**/*.js'],
+      subscribers: ['dist/subscriber/**/*.js'],
+      ssl: true,
+      extra: {
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
+    });
 
     const apolloServer = new ApolloServer({
       schema: await buildSchema({
