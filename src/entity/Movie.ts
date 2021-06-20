@@ -2,7 +2,7 @@ import { MovieState } from './MovieState';
 import { Comment } from './Comment';
 import { Genre } from './Genre';
 import { MovieInfo } from './MovieInfo';
-import { ObjectType, Field } from 'type-graphql';
+import { ObjectType, Field, Int } from 'type-graphql';
 import { User } from './User';
 import {
   BaseEntity,
@@ -78,4 +78,8 @@ export class Movie extends BaseEntity {
     nullable: true,
   })
   movieState?: MovieState[];
+
+  @Field(() => Int, { defaultValue: 0 })
+  @Column({ default: 0 })
+  rank: number;
 }

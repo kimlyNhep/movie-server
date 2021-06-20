@@ -122,6 +122,7 @@ export class movieResolvers {
           movie: newMovie,
         };
       } catch (err) {
+        queryRunner.rollbackTransaction();
         const { code } = err;
 
         if (code === '23505') {
@@ -236,6 +237,7 @@ export class movieResolvers {
           movie: newMovie,
         };
       } catch (err) {
+        queryRunner.rollbackTransaction();
         const { code } = err;
 
         if (code === '23505') {
@@ -253,6 +255,8 @@ export class movieResolvers {
         return {
           errors: err,
         };
+      } finally {
+        await queryRunner.release();
       }
     }
   }

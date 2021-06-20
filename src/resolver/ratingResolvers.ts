@@ -45,9 +45,7 @@ export class ratingResolvers {
       };
     }
 
-    const movie = await getConnection()
-      .getRepository(Movie)
-      .findOne({ where: { id: option.movieId } });
+    const movie = await Movie.findOne({ where: { id: option.movieId } });
 
     if (!movie) {
       return {
@@ -59,28 +57,31 @@ export class ratingResolvers {
       };
     }
 
-    await getConnection()
-      .createQueryBuilder()
-      .delete()
-      .from(RatingMovies)
-      .where('userId = :uid', { uid: user.id })
-      .andWhere('movieId = :mid', { mid: movie.id })
-      .execute();
+    let existingRatingMovie = await getConnection()
+      .createQueryBuilder(RatingMovies, 'ratingMovie')
+      .where('ratingMovie.userId = :uid', { uid: user.id })
+      .andWhere('ratingMovie.movieId = :mid', { mid: movie.id })
+      .getOne();
 
     const queryRunner = getConnection().createQueryRunner();
     await queryRunner.connect();
+
     await queryRunner.startTransaction();
 
     try {
       const newMovie = queryRunner.manager.create(Movie, movie);
 
-      const newRatingMovies = new RatingMovies();
-      newRatingMovies.movie = movie;
-      newRatingMovies.user = user;
-      newRatingMovies.ratedPoint = option.ratedPoint;
+      if (!existingRatingMovie) {
+        existingRatingMovie = new RatingMovies();
+      }
 
-      await queryRunner.manager.save(newRatingMovies);
+      existingRatingMovie.movie = movie;
+      existingRatingMovie.user = user;
+      existingRatingMovie.ratedPoint = option.ratedPoint;
 
+      await queryRunner.manager.save(existingRatingMovie);
+
+      // calculate all point by movie
       const ratingMovies = await queryRunner.manager.find(RatingMovies, {
         where: { movie },
       });
@@ -89,14 +90,36 @@ export class ratingResolvers {
         return totalPoint + point.ratedPoint;
       }, 0);
 
+      console.log('Total Rated Point : ', totalRatedPoint);
+
       newMovie.point = Number(totalRatedPoint);
 
       await queryRunner.manager.save(newMovie);
 
+      // calculate rank
+
+      const movies = await queryRunner.manager.find(Movie, {
+        order: { point: 'DESC' },
+      });
+
+      movies.forEach(async (m, index) => {
+        const rankMovie = queryRunner.manager.create(Movie, m);
+        rankMovie.rank = index + 1;
+        await queryRunner.manager.save(rankMovie);
+      });
+
+      let index = 0;
+      for (const [, value] of Object.entries(movies)) {
+        const rankMovie = queryRunner.manager.create(Movie, value);
+        rankMovie.rank = index + 1;
+        index++;
+        await queryRunner.manager.save(rankMovie);
+      }
+
       await queryRunner.commitTransaction();
 
       return {
-        movie,
+        movie: newMovie,
       };
     } catch (err) {
       console.log(err);
@@ -106,10 +129,13 @@ export class ratingResolvers {
       return {
         errors: [
           {
-            message: 'fail',
+            message: 'something went wrong!',
           },
         ],
       };
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release();
     }
   }
 }
