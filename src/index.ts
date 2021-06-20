@@ -77,7 +77,7 @@ const app = async () => {
   try {
     let connectionOptions = await getConnectionOptions();
 
-    console.log(process.env);
+    console.log(process.env.NODE_ENV);
 
     if (process.env.NODE_ENV === 'production')
       connectionOptions = await getConnectionOptions('production');
