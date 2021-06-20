@@ -1,3 +1,4 @@
+import { getEnvHost } from './../utils/helper';
 import { MovieCharacters } from './../entity/MovieCharacters';
 import { Character } from './../entity/Character';
 import { isAuth } from './../middleware/auth';
@@ -178,6 +179,7 @@ export class movieResolvers {
     movie.creator = user;
     movie.genres = genres;
     movie.point = 0;
+    movie.photo = `${getEnvHost()}/images/default.png`;
 
     let characters: Character[] | undefined;
     if (options.characters) {
@@ -373,6 +375,18 @@ export class movieResolvers {
       .where('movie.creatorId = :uid', { uid: payload?.id })
       .getMany();
 
+    return {
+      movies,
+    };
+  }
+
+  @Query(() => MoviesResponse)
+  async getTopMovies(): Promise<MoviesResponse> {
+    const movies = await getConnection()
+      .createQueryBuilder(Movie, 'movie')
+      .orderBy('movie.rank', 'ASC')
+      .limit(5)
+      .getMany();
     return {
       movies,
     };
