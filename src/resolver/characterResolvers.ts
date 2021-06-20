@@ -1,6 +1,5 @@
 import { ErrorResponse } from './../types/error';
 import { validate } from 'class-validator';
-import { getEnvHost } from './../utils/helper';
 import { Character } from './../entity/Character';
 import { GraphQLUpload, FileUpload } from 'graphql-upload';
 import {
@@ -48,7 +47,7 @@ export class characterResolvers {
       const character = new Character();
 
       character.username = username;
-      character.photo = `${getEnvHost()}/profile/${filename}`;
+      character.photo = `https://movie-academy.herokuapp.com/profile/${filename}`;
 
       const errors = await validate(character);
       if (errors.length > 0) {

@@ -25,7 +25,6 @@ import { compare, hash } from 'bcryptjs';
 import { validate } from 'class-validator';
 import { getManager, getRepository } from 'typeorm';
 import { createWriteStream } from 'fs';
-import { getEnvHost } from '../utils/helper';
 
 @ObjectType()
 class NumberUserType {
@@ -81,7 +80,7 @@ export class userResolvers {
       user.username = options.username;
       user.role = options.role || UserRoles.Member;
       user.password = hashedPassword;
-      user.photo = `${getEnvHost()}/profile/${fileName}`;
+      user.photo = `https://movie-academy.herokuapp.com/profile/${fileName}`;
 
       const errors = await validate(user);
       if (errors.length > 0) {
