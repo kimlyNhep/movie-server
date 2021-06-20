@@ -79,25 +79,13 @@ const app = () => __awaiter(void 0, void 0, void 0, function* () {
         return res.send({ ok: true, accessToken: token_1.accessToken(user) });
     }));
     try {
-        yield typeorm_1.createConnection({
-            type: 'postgres',
-            host: 'ec2-54-205-183-19.compute-1.amazonaws.com',
-            port: 5432,
-            username: 'joytkawnlpwdcq',
-            password: '546c039124795af20e024347182ea9b8b280a28bf281714bae1fc2b42748b6ee',
-            database: 'ddrgs892vhn6ak',
-            synchronize: false,
-            logging: false,
-            entities: ['dist/entity/**/*.js'],
-            migrations: ['dist/migration/**/*.js'],
-            subscribers: ['dist/subscriber/**/*.js'],
-            ssl: true,
-            extra: {
-                ssl: {
-                    rejectUnauthorized: false,
-                },
-            },
-        });
+        let connectionOptions = yield typeorm_1.getConnectionOptions();
+        console.log(process.env.NODE_ENV);
+        if (process.env.NODE_ENV === 'production')
+            connectionOptions = yield typeorm_1.getConnectionOptions('production');
+        else
+            connectionOptions = yield typeorm_1.getConnectionOptions('default');
+        yield typeorm_1.createConnection(connectionOptions);
         const apolloServer = new apollo_server_express_1.ApolloServer({
             schema: yield type_graphql_1.buildSchema({
                 resolvers: [
