@@ -1,4 +1,3 @@
-import { movieStateResolvers } from './resolver/movieStateResolvers';
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -13,14 +12,15 @@ import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { sendRefreshToken } from './sendRefreshToken';
 import { graphqlUploadExpress } from 'graphql-upload';
-import { uploadResolver } from './resolver/uploadResolvers';
-import { genreResolvers } from './resolver/genreResolvers';
-import { userResolvers } from './resolver/userResolvers';
-import { movieResolvers } from './resolver/movieResolvers';
-import { ratingResolvers } from './resolver/ratingResolvers';
 import { characterResolvers } from './resolver/characterResolvers';
-import { movieInfoResolvers } from './resolver/movieInfoResolvers';
 import { commentResolvers } from './resolver/commentResolvers';
+import { genreResolvers } from './resolver/genreResolvers';
+import { movieInfoResolvers } from './resolver/movieInfoResolvers';
+import { movieResolvers } from './resolver/movieResolvers';
+import { movieStateResolvers } from './resolver/movieStateResolvers';
+import { ratingResolvers } from './resolver/ratingResolvers';
+import { uploadResolver } from './resolver/uploadResolvers';
+import { userResolvers } from './resolver/userResolvers';
 
 const app = async () => {
   dotenv.config();
@@ -99,15 +99,15 @@ const app = async () => {
     const apolloServer = new ApolloServer({
       schema: await buildSchema({
         resolvers: [
-          userResolvers,
-          genreResolvers,
-          movieResolvers,
-          uploadResolver,
-          ratingResolvers,
           characterResolvers,
-          movieInfoResolvers,
           commentResolvers,
+          genreResolvers,
+          movieInfoResolvers,
+          movieResolvers,
           movieStateResolvers,
+          ratingResolvers,
+          uploadResolver,
+          userResolvers,
         ],
       }),
       context: ({ req, res }): MovieContext => ({ req, res }),

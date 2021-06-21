@@ -22,7 +22,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.movieResolvers = void 0;
-const helper_1 = require("./../utils/helper");
 const MovieCharacters_1 = require("./../entity/MovieCharacters");
 const Character_1 = require("./../entity/Character");
 const auth_1 = require("./../middleware/auth");
@@ -161,7 +160,7 @@ let movieResolvers = class movieResolvers {
             movie.creator = user;
             movie.genres = genres;
             movie.point = 0;
-            movie.photo = `${helper_1.getEnvHost()}/images/default.png`;
+            movie.photo = `https://movie-academy.herokuapp.com/images/default.png`;
             let characters;
             if (options.characters) {
                 characters = yield typeorm_1.getRepository(Character_1.Character).findByIds(options.characters.map((item) => item.id));

@@ -34,7 +34,6 @@ const bcryptjs_1 = require("bcryptjs");
 const class_validator_1 = require("class-validator");
 const typeorm_1 = require("typeorm");
 const fs_1 = require("fs");
-const helper_1 = require("../utils/helper");
 let NumberUserType = class NumberUserType {
 };
 __decorate([
@@ -79,7 +78,7 @@ let userResolvers = class userResolvers {
                 user.username = options.username;
                 user.role = options.role || enumType_1.UserRoles.Member;
                 user.password = hashedPassword;
-                user.photo = `${helper_1.getEnvHost()}/profile/${fileName}`;
+                user.photo = `https://movie-academy.herokuapp.com/profile/${fileName}`;
                 const errors = yield class_validator_1.validate(user);
                 if (errors.length > 0) {
                     return {

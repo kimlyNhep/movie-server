@@ -10,14 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SeederUser1623259257213 = void 0;
-const helper_1 = require("../utils/helper");
 class SeederUser1623259257213 {
     constructor() {
         this.name = 'SeederUser1623259257213';
     }
     up(queryRunner) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield queryRunner.query(`INSERT INTO "user" ("id","email","username","role","password","photo") VALUES ('4659524d-878b-4eb1-8999-0ceb5d7e5baf','kimly@gmail.com','kimly','Admin','$2a$12$GZElV9fpEvqg8by326tdsegagefo7twloY3jkXZk6wm2F51bsIAlK','${helper_1.getEnvHost()}/profile/default.png')`);
+            yield queryRunner.query(`INSERT INTO "user" ("id","email","username","role","password","photo") VALUES ('4659524d-878b-4eb1-8999-0ceb5d7e5baf','kimly@gmail.com','kimly','Admin','$2a$12$GZElV9fpEvqg8by326tdsegagefo7twloY3jkXZk6wm2F51bsIAlK','https://movie-academy.herokuapp.com/profile/default.png')`);
         });
     }
     down(queryRunner) {

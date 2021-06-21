@@ -24,7 +24,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.characterResolvers = exports.CharactersResponse = exports.CharacterResponse = void 0;
 const error_1 = require("./../types/error");
 const class_validator_1 = require("class-validator");
-const helper_1 = require("./../utils/helper");
 const Character_1 = require("./../entity/Character");
 const graphql_upload_1 = require("graphql-upload");
 const type_graphql_1 = require("type-graphql");
@@ -66,7 +65,7 @@ let characterResolvers = class characterResolvers {
                 createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/profile/${filename}`));
                 const character = new Character_1.Character();
                 character.username = username;
-                character.photo = `${helper_1.getEnvHost()}/profile/${filename}`;
+                character.photo = `https://movie-academy.herokuapp.com/profile/${filename}`;
                 const errors = yield class_validator_1.validate(character);
                 if (errors.length > 0) {
                     return {

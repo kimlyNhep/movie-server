@@ -12,7 +12,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const movieStateResolvers_1 = require("./resolver/movieStateResolvers");
 require("reflect-metadata");
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
@@ -26,14 +25,15 @@ const apollo_server_express_1 = require("apollo-server-express");
 const type_graphql_1 = require("type-graphql");
 const sendRefreshToken_1 = require("./sendRefreshToken");
 const graphql_upload_1 = require("graphql-upload");
-const uploadResolvers_1 = require("./resolver/uploadResolvers");
-const genreResolvers_1 = require("./resolver/genreResolvers");
-const userResolvers_1 = require("./resolver/userResolvers");
-const movieResolvers_1 = require("./resolver/movieResolvers");
-const ratingResolvers_1 = require("./resolver/ratingResolvers");
 const characterResolvers_1 = require("./resolver/characterResolvers");
-const movieInfoResolvers_1 = require("./resolver/movieInfoResolvers");
 const commentResolvers_1 = require("./resolver/commentResolvers");
+const genreResolvers_1 = require("./resolver/genreResolvers");
+const movieInfoResolvers_1 = require("./resolver/movieInfoResolvers");
+const movieResolvers_1 = require("./resolver/movieResolvers");
+const movieStateResolvers_1 = require("./resolver/movieStateResolvers");
+const ratingResolvers_1 = require("./resolver/ratingResolvers");
+const uploadResolvers_1 = require("./resolver/uploadResolvers");
+const userResolvers_1 = require("./resolver/userResolvers");
 const app = () => __awaiter(void 0, void 0, void 0, function* () {
     dotenv_1.default.config();
     const app = express_1.default();
@@ -79,25 +79,37 @@ const app = () => __awaiter(void 0, void 0, void 0, function* () {
         return res.send({ ok: true, accessToken: token_1.accessToken(user) });
     }));
     try {
-        let connectionOptions = yield typeorm_1.getConnectionOptions();
-        console.log(process.env.NODE_ENV);
-        if (process.env.NODE_ENV === 'production')
-            connectionOptions = yield typeorm_1.getConnectionOptions('production');
-        else
-            connectionOptions = yield typeorm_1.getConnectionOptions('default');
-        yield typeorm_1.createConnection(connectionOptions);
+        yield typeorm_1.createConnection({
+            type: 'postgres',
+            host: 'ec2-54-205-183-19.compute-1.amazonaws.com',
+            port: 5432,
+            username: 'joytkawnlpwdcq',
+            password: '546c039124795af20e024347182ea9b8b280a28bf281714bae1fc2b42748b6ee',
+            database: 'ddrgs892vhn6ak',
+            synchronize: false,
+            logging: false,
+            entities: ['dist/entity/**/*.js'],
+            migrations: ['dist/migration/**/*.js'],
+            subscribers: ['dist/subscriber/**/*.js'],
+            ssl: true,
+            extra: {
+                ssl: {
+                    rejectUnauthorized: false,
+                },
+            },
+        });
         const apolloServer = new apollo_server_express_1.ApolloServer({
             schema: yield type_graphql_1.buildSchema({
                 resolvers: [
-                    userResolvers_1.userResolvers,
-                    genreResolvers_1.genreResolvers,
-                    movieResolvers_1.movieResolvers,
-                    uploadResolvers_1.uploadResolver,
-                    ratingResolvers_1.ratingResolvers,
                     characterResolvers_1.characterResolvers,
-                    movieInfoResolvers_1.movieInfoResolvers,
                     commentResolvers_1.commentResolvers,
+                    genreResolvers_1.genreResolvers,
+                    movieInfoResolvers_1.movieInfoResolvers,
+                    movieResolvers_1.movieResolvers,
                     movieStateResolvers_1.movieStateResolvers,
+                    ratingResolvers_1.ratingResolvers,
+                    uploadResolvers_1.uploadResolver,
+                    userResolvers_1.userResolvers,
                 ],
             }),
             context: ({ req, res }) => ({ req, res }),
