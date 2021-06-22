@@ -1,16 +1,16 @@
-import { GraphQLUpload, FileUpload } from 'graphql-upload';
-import { UserRoles } from './../enumType';
+import { GraphQLUpload, FileUpload } from "graphql-upload";
+import { UserRoles } from "./../enumType";
 import {
   LoginResponse,
   RegisterResponse,
   UserLoginInput,
   UserRegisterInput,
-} from './../types/user';
-import { sendRefreshToken } from './../sendRefreshToken';
-import { isAuth } from './../middleware/auth';
-import { accessToken } from './../token';
-import { MovieContext } from './../MovieContext';
-import { User } from './../entity/User';
+} from "./../types/user";
+import { sendRefreshToken } from "./../sendRefreshToken";
+import { isAuth } from "./../middleware/auth";
+import { accessToken } from "./../token";
+import { MovieContext } from "./../MovieContext";
+import { User } from "./../entity/User";
 import {
   Arg,
   Mutation,
@@ -20,12 +20,11 @@ import {
   UseMiddleware,
   ObjectType,
   Field,
-} from 'type-graphql';
-import { compare, hash } from 'bcryptjs';
-import { validate } from 'class-validator';
-import { getManager, getRepository } from 'typeorm';
-import { createWriteStream } from 'fs';
-import { getEnvHost } from '../utils/helper';
+} from "type-graphql";
+import { compare, hash } from "bcryptjs";
+import { validate } from "class-validator";
+import { getManager, getRepository } from "typeorm";
+import { uploadToGoogleDrive } from "../utils/helper";
 
 @ObjectType()
 class NumberUserType {
@@ -55,24 +54,20 @@ export class userResolvers {
   @Mutation(() => RegisterResponse)
   async register(
     @Ctx() { res }: MovieContext,
-    @Arg('options') options: UserRegisterInput,
-    @Arg('photo', () => GraphQLUpload, { nullable: true }) photo?: FileUpload
+    @Arg("options") options: UserRegisterInput,
+    @Arg("photo", () => GraphQLUpload, { nullable: true }) photo?: FileUpload
   ): Promise<RegisterResponse> {
     const hashedPassword = await hash(options.password, 12);
 
     try {
-      let fileName: string;
+      let url: string;
 
       if (photo) {
-        const { createReadStream, filename } = photo;
-
-        fileName = filename;
-
-        createReadStream().pipe(
-          createWriteStream(__dirname + `/../../public/profile/${filename}`)
-        );
+        const urlResponse = await uploadToGoogleDrive(photo);
+        url = urlResponse.url;
       } else {
-        fileName = 'default.png';
+        url =
+          "https://drive.google.com/uc?export=download&id=1pgPBdC3-qZP_rjXN86Lv0TZQex3VEZBT";
       }
 
       const user = new User();
@@ -81,7 +76,7 @@ export class userResolvers {
       user.username = options.username;
       user.role = options.role || UserRoles.Member;
       user.password = hashedPassword;
-      user.photo = `${getEnvHost()}/profile/${fileName}`;
+      user.photo = url;
 
       const errors = await validate(user);
       if (errors.length > 0) {
@@ -105,14 +100,14 @@ export class userResolvers {
     } catch (err) {
       const { code } = err;
 
-      if (code === '23505') {
-        const start = err.detail.indexOf('(');
-        const end = err.detail.indexOf(')');
+      if (code === "23505") {
+        const start = err.detail.indexOf("(");
+        const end = err.detail.indexOf(")");
         return {
           errors: [
             {
               field: err.detail.substring(start + 1, end),
-              message: 'Already exist!',
+              message: "Already exist!",
             },
           ],
         };
@@ -125,7 +120,7 @@ export class userResolvers {
 
   @Mutation(() => LoginResponse)
   async login(
-    @Arg('options') options: UserLoginInput,
+    @Arg("options") options: UserLoginInput,
     @Ctx() { res }: MovieContext
   ): Promise<LoginResponse> {
     const user = await User.findOne({ where: { username: options.username } });
@@ -134,8 +129,8 @@ export class userResolvers {
       return {
         errors: [
           {
-            field: 'username',
-            message: 'User not exist',
+            field: "username",
+            message: "User not exist",
           },
         ],
       };
@@ -147,8 +142,8 @@ export class userResolvers {
       return {
         errors: [
           {
-            field: 'password',
-            message: 'is Not Correct.',
+            field: "password",
+            message: "is Not Correct.",
           },
         ],
       };
@@ -165,7 +160,7 @@ export class userResolvers {
   @Mutation(() => Boolean)
   logout(@Ctx() { res }: MovieContext) {
     return new Promise((resolve) => {
-      res.clearCookie('token');
+      res.clearCookie("token");
       resolve(true);
     });
   }

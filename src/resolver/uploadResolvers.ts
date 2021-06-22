@@ -1,13 +1,12 @@
-import { getManager } from 'typeorm';
-import { ErrorResponse } from '../types/error';
-import { ObjectType } from 'type-graphql';
-import { Movie } from './../entity/Movie';
-import { Field } from 'type-graphql';
-import { FileUpload } from 'graphql-upload';
-import { Resolver, Mutation, Arg } from 'type-graphql';
-import { GraphQLUpload } from 'graphql-upload';
-import { createWriteStream } from 'fs';
-import { getEnvHost } from '../utils/helper';
+import { getManager } from "typeorm";
+import { ErrorResponse } from "../types/error";
+import { ObjectType } from "type-graphql";
+import { Movie } from "./../entity/Movie";
+import { Field } from "type-graphql";
+import { FileUpload } from "graphql-upload";
+import { Resolver, Mutation, Arg } from "type-graphql";
+import { GraphQLUpload } from "graphql-upload";
+import { uploadToGoogleDrive } from "../utils/helper";
 
 @ObjectType()
 class MovieUploadResponse {
@@ -22,8 +21,8 @@ class MovieUploadResponse {
 export class uploadResolver {
   @Mutation(() => MovieUploadResponse)
   async uploadMoviePhoto(
-    @Arg('id') id: string,
-    @Arg('photo', () => GraphQLUpload) photo: FileUpload
+    @Arg("id") id: string,
+    @Arg("photo", () => GraphQLUpload) photo: FileUpload
   ): Promise<MovieUploadResponse> {
     // const id = option.id;
 
@@ -32,34 +31,35 @@ export class uploadResolver {
       return {
         errors: [
           {
-            field: 'id',
+            field: "id",
             message: "Movie doesn't exist",
           },
         ],
       };
     }
 
-    const { createReadStream, filename } = photo;
-    createReadStream().pipe(
-      createWriteStream(__dirname + `/../../public/images/${filename}`)
-    );
+    // upload to google drive
+    const urlResponse = await uploadToGoogleDrive(photo);
 
     // add photo url to database
-    movie.photo = `${getEnvHost()}/images/${filename}`;
+    if (photo) movie.photo = urlResponse.url;
+    else
+      movie.photo =
+        "https://drive.google.com/file/d/1ztVtldH1LBlJkgbqdR3MzusmFLSUbtva/view?usp=sharing";
 
     try {
       await getManager().save(movie);
     } catch (err) {
       const { code } = err;
 
-      if (code === '23505') {
-        const start = err.detail.indexOf('(');
-        const end = err.detail.indexOf(')');
+      if (code === "23505") {
+        const start = err.detail.indexOf("(");
+        const end = err.detail.indexOf(")");
         return {
           errors: [
             {
               field: err.detail.substring(start + 1, end),
-              message: 'Already exist!',
+              message: "Already exist!",
             },
           ],
         };
@@ -70,7 +70,7 @@ export class uploadResolver {
     }
 
     return {
-      imageUrl: `${getEnvHost()}/images/${filename}`,
+      imageUrl: urlResponse.url,
     };
   }
 }
