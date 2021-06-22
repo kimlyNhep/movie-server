@@ -6,7 +6,7 @@ import { Field } from 'type-graphql';
 import { FileUpload } from 'graphql-upload';
 import { Resolver, Mutation, Arg } from 'type-graphql';
 import { GraphQLUpload } from 'graphql-upload';
-import { createWriteStream } from 'fs';
+import { uploadToGoogleDrive } from '../utils/helper';
 
 @ObjectType()
 class MovieUploadResponse {
@@ -38,13 +38,14 @@ export class uploadResolver {
       };
     }
 
-    const { createReadStream, filename } = photo;
-    createReadStream().pipe(
-      createWriteStream(__dirname + `/../../public/images/${filename}`)
-    );
+    // upload to google drive
+    const urlResponse = await uploadToGoogleDrive(photo);
 
     // add photo url to database
-    movie.photo = `https://movie-academy.herokuapp.com/images/${filename}`;
+    if (photo) movie.photo = urlResponse.url;
+    else
+      movie.photo =
+        'https://drive.google.com/file/d/1ztVtldH1LBlJkgbqdR3MzusmFLSUbtva/view?usp=sharing';
 
     try {
       await getManager().save(movie);
@@ -69,7 +70,7 @@ export class uploadResolver {
     }
 
     return {
-      imageUrl: `https://movie-academy.herokuapp.com/images/${filename}`,
+      imageUrl: urlResponse.url,
     };
   }
 }

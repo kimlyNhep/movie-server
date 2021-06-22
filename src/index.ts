@@ -3,24 +3,20 @@ import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { accessToken } from './token';
-import { User } from './entity/User';
-import { verify } from 'jsonwebtoken';
 import { MovieContext } from './MovieContext';
 import { createConnection } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
-import { sendRefreshToken } from './sendRefreshToken';
 import { graphqlUploadExpress } from 'graphql-upload';
-import { characterResolvers } from './resolver/characterResolvers';
-import { commentResolvers } from './resolver/commentResolvers';
-import { genreResolvers } from './resolver/genreResolvers';
-import { movieInfoResolvers } from './resolver/movieInfoResolvers';
-import { movieResolvers } from './resolver/movieResolvers';
-import { movieStateResolvers } from './resolver/movieStateResolvers';
-import { ratingResolvers } from './resolver/ratingResolvers';
 import { uploadResolver } from './resolver/uploadResolvers';
+import { genreResolvers } from './resolver/genreResolvers';
 import { userResolvers } from './resolver/userResolvers';
+import { movieResolvers } from './resolver/movieResolvers';
+import { ratingResolvers } from './resolver/ratingResolvers';
+import { characterResolvers } from './resolver/characterResolvers';
+import { movieInfoResolvers } from './resolver/movieInfoResolvers';
+import { commentResolvers } from './resolver/commentResolvers';
+import { movieStateResolvers } from './resolver/movieStateResolvers';
 
 const app = async () => {
   dotenv.config();
@@ -54,25 +50,6 @@ const app = async () => {
   app.use(express.static('public'));
   app.use('/images', express.static('images'));
   app.get('/', (_req, res) => res.send('Hello'));
-
-  app.post('/refresh_token', async (req, res) => {
-    const token = req.cookies.token;
-    if (!token) return res.send({ ok: false, accessToken: '' });
-
-    let payload: any = null;
-    try {
-      payload = verify(token, process.env.REFRESH_TOKEN_SECRET!);
-    } catch (err) {
-      return res.send({ ok: false, accessToken: '' });
-    }
-
-    const user = await User.findOne({ id: payload.userId });
-    if (!user) return res.send({ ok: false, accessToken: '' });
-
-    sendRefreshToken(res, accessToken(user));
-
-    return res.send({ ok: true, accessToken: accessToken(user) });
-  });
 
   try {
     await createConnection({

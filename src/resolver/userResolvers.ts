@@ -24,7 +24,7 @@ import {
 import { compare, hash } from 'bcryptjs';
 import { validate } from 'class-validator';
 import { getManager, getRepository } from 'typeorm';
-import { createWriteStream } from 'fs';
+import { uploadToGoogleDrive } from '../utils/helper';
 
 @ObjectType()
 class NumberUserType {
@@ -60,18 +60,14 @@ export class userResolvers {
     const hashedPassword = await hash(options.password, 12);
 
     try {
-      let fileName: string;
+      let url: string;
 
       if (photo) {
-        const { createReadStream, filename } = photo;
-
-        fileName = filename;
-
-        createReadStream().pipe(
-          createWriteStream(__dirname + `/../../public/profile/${filename}`)
-        );
+        const urlResponse = await uploadToGoogleDrive(photo);
+        url = urlResponse.url;
       } else {
-        fileName = 'default.png';
+        url =
+          'https://drive.google.com/uc?export=download&id=1pgPBdC3-qZP_rjXN86Lv0TZQex3VEZBT';
       }
 
       const user = new User();
@@ -80,7 +76,7 @@ export class userResolvers {
       user.username = options.username;
       user.role = options.role || UserRoles.Member;
       user.password = hashedPassword;
-      user.photo = `https://movie-academy.herokuapp.com/profile/${fileName}`;
+      user.photo = url;
 
       const errors = await validate(user);
       if (errors.length > 0) {

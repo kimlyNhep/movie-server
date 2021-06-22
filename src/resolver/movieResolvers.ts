@@ -178,7 +178,8 @@ export class movieResolvers {
     movie.creator = user;
     movie.genres = genres;
     movie.point = 0;
-    movie.photo = `https://movie-academy.herokuapp.com/images/default.png`;
+    movie.photo =
+      'https://drive.google.com/uc?export=download&id=1ztVtldH1LBlJkgbqdR3MzusmFLSUbtva';
 
     let characters: Character[] | undefined;
     if (options.characters) {
