@@ -29,7 +29,6 @@ const Movie_1 = require("./../entity/Movie");
 const type_graphql_2 = require("type-graphql");
 const type_graphql_3 = require("type-graphql");
 const graphql_upload_1 = require("graphql-upload");
-const fs_1 = require("fs");
 const helper_1 = require("../utils/helper");
 let MovieUploadResponse = class MovieUploadResponse {
 };
@@ -52,28 +51,31 @@ let uploadResolver = class uploadResolver {
                 return {
                     errors: [
                         {
-                            field: 'id',
+                            field: "id",
                             message: "Movie doesn't exist",
                         },
                     ],
                 };
             }
-            const { createReadStream, filename } = photo;
-            createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/images/${filename}`));
-            movie.photo = `${helper_1.getEnvHost()}/images/${filename}`;
+            const urlResponse = yield helper_1.uploadToGoogleDrive(photo);
+            if (photo)
+                movie.photo = urlResponse.url;
+            else
+                movie.photo =
+                    "https://drive.google.com/file/d/1ztVtldH1LBlJkgbqdR3MzusmFLSUbtva/view?usp=sharing";
             try {
                 yield typeorm_1.getManager().save(movie);
             }
             catch (err) {
                 const { code } = err;
-                if (code === '23505') {
-                    const start = err.detail.indexOf('(');
-                    const end = err.detail.indexOf(')');
+                if (code === "23505") {
+                    const start = err.detail.indexOf("(");
+                    const end = err.detail.indexOf(")");
                     return {
                         errors: [
                             {
                                 field: err.detail.substring(start + 1, end),
-                                message: 'Already exist!',
+                                message: "Already exist!",
                             },
                         ],
                     };
@@ -83,15 +85,15 @@ let uploadResolver = class uploadResolver {
                 };
             }
             return {
-                imageUrl: `${helper_1.getEnvHost()}/images/${filename}`,
+                imageUrl: urlResponse.url,
             };
         });
     }
 };
 __decorate([
     type_graphql_3.Mutation(() => MovieUploadResponse),
-    __param(0, type_graphql_3.Arg('id')),
-    __param(1, type_graphql_3.Arg('photo', () => graphql_upload_1.GraphQLUpload)),
+    __param(0, type_graphql_3.Arg("id")),
+    __param(1, type_graphql_3.Arg("photo", () => graphql_upload_1.GraphQLUpload)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)

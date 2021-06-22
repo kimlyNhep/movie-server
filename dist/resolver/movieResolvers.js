@@ -22,7 +22,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.movieResolvers = void 0;
-const helper_1 = require("./../utils/helper");
 const MovieCharacters_1 = require("./../entity/MovieCharacters");
 const Character_1 = require("./../entity/Character");
 const auth_1 = require("./../middleware/auth");
@@ -97,7 +96,7 @@ let movieResolvers = class movieResolvers {
                         .createQueryBuilder()
                         .delete()
                         .from(MovieCharacters_1.MovieCharacters)
-                        .where('movieId = :id', { id: options.id })
+                        .where("movieId = :id", { id: options.id })
                         .execute();
                     for (const [, value] of Object.entries(characterWithRole)) {
                         const moviesCharacters = new MovieCharacters_1.MovieCharacters();
@@ -115,14 +114,14 @@ let movieResolvers = class movieResolvers {
                 catch (err) {
                     queryRunner.rollbackTransaction();
                     const { code } = err;
-                    if (code === '23505') {
-                        const start = err.detail.indexOf('(');
-                        const end = err.detail.indexOf(')');
+                    if (code === "23505") {
+                        const start = err.detail.indexOf("(");
+                        const end = err.detail.indexOf(")");
                         return {
                             errors: [
                                 {
                                     field: err.detail.substring(start + 1, end),
-                                    message: 'Already exist!',
+                                    message: "Already exist!",
                                 },
                             ],
                         };
@@ -141,7 +140,7 @@ let movieResolvers = class movieResolvers {
                 return {
                     errors: [
                         {
-                            message: 'User not exist',
+                            message: "User not exist",
                         },
                     ],
                 };
@@ -161,7 +160,8 @@ let movieResolvers = class movieResolvers {
             movie.creator = user;
             movie.genres = genres;
             movie.point = 0;
-            movie.photo = `${helper_1.getEnvHost()}/images/default.png`;
+            movie.photo =
+                "https://drive.google.com/uc?export=download&id=1ztVtldH1LBlJkgbqdR3MzusmFLSUbtva";
             let characters;
             if (options.characters) {
                 characters = yield typeorm_1.getRepository(Character_1.Character).findByIds(options.characters.map((item) => item.id));
@@ -213,14 +213,14 @@ let movieResolvers = class movieResolvers {
                 catch (err) {
                     queryRunner.rollbackTransaction();
                     const { code } = err;
-                    if (code === '23505') {
-                        const start = err.detail.indexOf('(');
-                        const end = err.detail.indexOf(')');
+                    if (code === "23505") {
+                        const start = err.detail.indexOf("(");
+                        const end = err.detail.indexOf(")");
                         return {
                             errors: [
                                 {
                                     field: err.detail.substring(start + 1, end),
-                                    message: 'Already exist!',
+                                    message: "Already exist!",
                                 },
                             ],
                         };
@@ -239,27 +239,27 @@ let movieResolvers = class movieResolvers {
         return __awaiter(this, void 0, void 0, function* () {
             const movieQuery = yield typeorm_1.getConnection()
                 .createQueryBuilder()
-                .select('movie')
-                .from(Movie_1.Movie, 'movie')
-                .where('movie.id = :id', { id })
-                .innerJoinAndSelect('movie.creator', 'creator')
-                .innerJoinAndSelect('movie.genres', 'genres')
-                .leftJoinAndSelect('movie.ratingMovies', 'ratingMovies')
-                .leftJoinAndSelect('movie.comment', 'comment')
-                .leftJoinAndSelect('comment.user', 'users')
-                .leftJoinAndSelect('movie.movieCharacters', 'movieCharacters')
-                .leftJoinAndSelect('movieCharacters.character', 'characters')
-                .leftJoinAndSelect('ratingMovies.user', 'ratedUsers')
-                .leftJoinAndSelect('movie.info', 'info')
-                .leftJoinAndSelect('movie.movieState', 'movieState')
-                .orderBy('comment.createdAt', 'ASC')
+                .select("movie")
+                .from(Movie_1.Movie, "movie")
+                .where("movie.id = :id", { id })
+                .innerJoinAndSelect("movie.creator", "creator")
+                .innerJoinAndSelect("movie.genres", "genres")
+                .leftJoinAndSelect("movie.ratingMovies", "ratingMovies")
+                .leftJoinAndSelect("movie.comment", "comment")
+                .leftJoinAndSelect("comment.user", "users")
+                .leftJoinAndSelect("movie.movieCharacters", "movieCharacters")
+                .leftJoinAndSelect("movieCharacters.character", "characters")
+                .leftJoinAndSelect("ratingMovies.user", "ratedUsers")
+                .leftJoinAndSelect("movie.info", "info")
+                .leftJoinAndSelect("movie.movieState", "movieState")
+                .orderBy("comment.createdAt", "ASC")
                 .getOne();
             if (!movieQuery) {
                 return {
                     errors: [
                         {
-                            field: 'id',
-                            message: 'Movie not exist',
+                            field: "id",
+                            message: "Movie not exist",
                         },
                     ],
                 };
@@ -272,16 +272,16 @@ let movieResolvers = class movieResolvers {
     getMovies() {
         return __awaiter(this, void 0, void 0, function* () {
             const moviesQuery = yield typeorm_1.getConnection()
-                .createQueryBuilder(Movie_1.Movie, 'movie')
-                .innerJoinAndSelect('movie.creator', 'creator')
-                .innerJoinAndSelect('movie.genres', 'genres')
-                .leftJoinAndSelect('movie.ratingMovies', 'ratingMovies')
-                .leftJoinAndSelect('movie.comment', 'comment')
-                .leftJoinAndSelect('comment.user', 'users')
-                .leftJoinAndSelect('movie.movieCharacters', 'movieCharacters')
-                .leftJoinAndSelect('movieCharacters.character', 'characters')
-                .leftJoinAndSelect('ratingMovies.user', 'ratedUsers')
-                .leftJoinAndSelect('movie.info', 'info')
+                .createQueryBuilder(Movie_1.Movie, "movie")
+                .innerJoinAndSelect("movie.creator", "creator")
+                .innerJoinAndSelect("movie.genres", "genres")
+                .leftJoinAndSelect("movie.ratingMovies", "ratingMovies")
+                .leftJoinAndSelect("movie.comment", "comment")
+                .leftJoinAndSelect("comment.user", "users")
+                .leftJoinAndSelect("movie.movieCharacters", "movieCharacters")
+                .leftJoinAndSelect("movieCharacters.character", "characters")
+                .leftJoinAndSelect("ratingMovies.user", "ratedUsers")
+                .leftJoinAndSelect("movie.info", "info")
                 .getMany();
             return {
                 movies: moviesQuery,
@@ -292,15 +292,15 @@ let movieResolvers = class movieResolvers {
         return __awaiter(this, void 0, void 0, function* () {
             const moviesQuery = yield typeorm_1.getConnection()
                 .createQueryBuilder()
-                .select('movie')
-                .from(Movie_1.Movie, 'movie')
-                .orderBy('movie.title', 'ASC')
-                .innerJoinAndSelect('movie.creator', 'creator')
-                .innerJoinAndSelect('movie.genres', 'genres')
-                .leftJoinAndSelect('movie.info', 'info')
+                .select("movie")
+                .from(Movie_1.Movie, "movie")
+                .orderBy("movie.title", "ASC")
+                .innerJoinAndSelect("movie.creator", "creator")
+                .innerJoinAndSelect("movie.genres", "genres")
+                .leftJoinAndSelect("movie.info", "info")
                 .where(`info.released_date like '%${year}%'`)
-                .leftJoinAndSelect('info.movieCharacters', 'movieCharacters')
-                .leftJoinAndSelect('movieCharacters.characters', 'characters')
+                .leftJoinAndSelect("info.movieCharacters", "movieCharacters")
+                .leftJoinAndSelect("movieCharacters.characters", "characters")
                 .getMany();
             return {
                 movies: moviesQuery,
@@ -310,17 +310,17 @@ let movieResolvers = class movieResolvers {
     getRankingMovies() {
         return __awaiter(this, void 0, void 0, function* () {
             const moviesQuery = yield typeorm_1.getConnection()
-                .createQueryBuilder(Movie_1.Movie, 'movie')
-                .innerJoinAndSelect('movie.creator', 'creator')
-                .innerJoinAndSelect('movie.genres', 'genres')
-                .leftJoinAndSelect('movie.ratingMovies', 'ratingMovies')
-                .leftJoinAndSelect('movie.comment', 'comment')
-                .leftJoinAndSelect('comment.user', 'users')
-                .leftJoinAndSelect('movie.movieCharacters', 'movieCharacters')
-                .leftJoinAndSelect('movieCharacters.character', 'characters')
-                .leftJoinAndSelect('ratingMovies.user', 'ratedUsers')
-                .leftJoinAndSelect('movie.info', 'info')
-                .orderBy('movie.point', 'DESC')
+                .createQueryBuilder(Movie_1.Movie, "movie")
+                .innerJoinAndSelect("movie.creator", "creator")
+                .innerJoinAndSelect("movie.genres", "genres")
+                .leftJoinAndSelect("movie.ratingMovies", "ratingMovies")
+                .leftJoinAndSelect("movie.comment", "comment")
+                .leftJoinAndSelect("comment.user", "users")
+                .leftJoinAndSelect("movie.movieCharacters", "movieCharacters")
+                .leftJoinAndSelect("movieCharacters.character", "characters")
+                .leftJoinAndSelect("ratingMovies.user", "ratedUsers")
+                .leftJoinAndSelect("movie.info", "info")
+                .orderBy("movie.point", "DESC")
                 .getMany();
             const movies = moviesQuery.map((item, index) => ({
                 rankingMovie: item,
@@ -334,8 +334,8 @@ let movieResolvers = class movieResolvers {
     getMoviesByUser({ payload }) {
         return __awaiter(this, void 0, void 0, function* () {
             const movies = yield typeorm_1.getConnection()
-                .createQueryBuilder(Movie_1.Movie, 'movie')
-                .where('movie.creatorId = :uid', { uid: payload === null || payload === void 0 ? void 0 : payload.id })
+                .createQueryBuilder(Movie_1.Movie, "movie")
+                .where("movie.creatorId = :uid", { uid: payload === null || payload === void 0 ? void 0 : payload.id })
                 .getMany();
             return {
                 movies,
@@ -345,8 +345,8 @@ let movieResolvers = class movieResolvers {
     getTopMovies() {
         return __awaiter(this, void 0, void 0, function* () {
             const movies = yield typeorm_1.getConnection()
-                .createQueryBuilder(Movie_1.Movie, 'movie')
-                .orderBy('movie.rank', 'ASC')
+                .createQueryBuilder(Movie_1.Movie, "movie")
+                .orderBy("movie.rank", "ASC")
                 .limit(5)
                 .getMany();
             return {
@@ -357,7 +357,7 @@ let movieResolvers = class movieResolvers {
 };
 __decorate([
     type_graphql_1.Mutation(() => movie_1.MovieResponse),
-    __param(0, type_graphql_1.Arg('options')),
+    __param(0, type_graphql_1.Arg("options")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [movie_1.UpdateMovieInput]),
     __metadata("design:returntype", Promise)
@@ -366,14 +366,14 @@ __decorate([
     type_graphql_1.Mutation(() => movie_1.MovieResponse),
     type_graphql_1.UseMiddleware(auth_1.isAuth),
     __param(0, type_graphql_1.Ctx()),
-    __param(1, type_graphql_1.Arg('options')),
+    __param(1, type_graphql_1.Arg("options")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, movie_1.CreateMovieInput]),
     __metadata("design:returntype", Promise)
 ], movieResolvers.prototype, "createMovie", null);
 __decorate([
     type_graphql_1.Query(() => movie_1.MovieResponse),
-    __param(0, type_graphql_1.Arg('id')),
+    __param(0, type_graphql_1.Arg("id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
@@ -386,7 +386,7 @@ __decorate([
 ], movieResolvers.prototype, "getMovies", null);
 __decorate([
     type_graphql_1.Query(() => movie_1.MoviesResponse),
-    __param(0, type_graphql_1.Arg('year')),
+    __param(0, type_graphql_1.Arg("year")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)

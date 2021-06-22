@@ -33,7 +33,6 @@ const type_graphql_1 = require("type-graphql");
 const bcryptjs_1 = require("bcryptjs");
 const class_validator_1 = require("class-validator");
 const typeorm_1 = require("typeorm");
-const fs_1 = require("fs");
 const helper_1 = require("../utils/helper");
 let NumberUserType = class NumberUserType {
 };
@@ -65,21 +64,21 @@ let userResolvers = class userResolvers {
         return __awaiter(this, void 0, void 0, function* () {
             const hashedPassword = yield bcryptjs_1.hash(options.password, 12);
             try {
-                let fileName;
+                let url;
                 if (photo) {
-                    const { createReadStream, filename } = photo;
-                    fileName = filename;
-                    createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/profile/${filename}`));
+                    const urlResponse = yield helper_1.uploadToGoogleDrive(photo);
+                    url = urlResponse.url;
                 }
                 else {
-                    fileName = 'default.png';
+                    url =
+                        "https://drive.google.com/uc?export=download&id=1pgPBdC3-qZP_rjXN86Lv0TZQex3VEZBT";
                 }
                 const user = new User_1.User();
                 user.email = options.email;
                 user.username = options.username;
                 user.role = options.role || enumType_1.UserRoles.Member;
                 user.password = hashedPassword;
-                user.photo = `${helper_1.getEnvHost()}/profile/${fileName}`;
+                user.photo = url;
                 const errors = yield class_validator_1.validate(user);
                 if (errors.length > 0) {
                     return {
@@ -101,14 +100,14 @@ let userResolvers = class userResolvers {
             }
             catch (err) {
                 const { code } = err;
-                if (code === '23505') {
-                    const start = err.detail.indexOf('(');
-                    const end = err.detail.indexOf(')');
+                if (code === "23505") {
+                    const start = err.detail.indexOf("(");
+                    const end = err.detail.indexOf(")");
                     return {
                         errors: [
                             {
                                 field: err.detail.substring(start + 1, end),
-                                message: 'Already exist!',
+                                message: "Already exist!",
                             },
                         ],
                     };
@@ -126,8 +125,8 @@ let userResolvers = class userResolvers {
                 return {
                     errors: [
                         {
-                            field: 'username',
-                            message: 'User not exist',
+                            field: "username",
+                            message: "User not exist",
                         },
                     ],
                 };
@@ -137,8 +136,8 @@ let userResolvers = class userResolvers {
                 return {
                     errors: [
                         {
-                            field: 'password',
-                            message: 'is Not Correct.',
+                            field: "password",
+                            message: "is Not Correct.",
                         },
                     ],
                 };
@@ -152,7 +151,7 @@ let userResolvers = class userResolvers {
     }
     logout({ res }) {
         return new Promise((resolve) => {
-            res.clearCookie('token');
+            res.clearCookie("token");
             resolve(true);
         });
     }
@@ -174,15 +173,15 @@ __decorate([
 __decorate([
     type_graphql_1.Mutation(() => user_1.RegisterResponse),
     __param(0, type_graphql_1.Ctx()),
-    __param(1, type_graphql_1.Arg('options')),
-    __param(2, type_graphql_1.Arg('photo', () => graphql_upload_1.GraphQLUpload, { nullable: true })),
+    __param(1, type_graphql_1.Arg("options")),
+    __param(2, type_graphql_1.Arg("photo", () => graphql_upload_1.GraphQLUpload, { nullable: true })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, user_1.UserRegisterInput, Object]),
     __metadata("design:returntype", Promise)
 ], userResolvers.prototype, "register", null);
 __decorate([
     type_graphql_1.Mutation(() => user_1.LoginResponse),
-    __param(0, type_graphql_1.Arg('options')),
+    __param(0, type_graphql_1.Arg("options")),
     __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [user_1.UserLoginInput, Object]),

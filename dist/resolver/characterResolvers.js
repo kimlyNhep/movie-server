@@ -28,7 +28,6 @@ const helper_1 = require("./../utils/helper");
 const Character_1 = require("./../entity/Character");
 const graphql_upload_1 = require("graphql-upload");
 const type_graphql_1 = require("type-graphql");
-const fs_1 = require("fs");
 const typeorm_1 = require("typeorm");
 let CharacterResponse = class CharacterResponse {
 };
@@ -62,11 +61,10 @@ let characterResolvers = class characterResolvers {
     createCharacter(username, photo) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { createReadStream, filename } = photo;
-                createReadStream().pipe(fs_1.createWriteStream(__dirname + `/../../public/profile/${filename}`));
+                const urlResponse = yield helper_1.uploadToGoogleDrive(photo);
                 const character = new Character_1.Character();
                 character.username = username;
-                character.photo = `${helper_1.getEnvHost()}/profile/${filename}`;
+                character.photo = urlResponse.url;
                 const errors = yield class_validator_1.validate(character);
                 if (errors.length > 0) {
                     return {
@@ -86,14 +84,14 @@ let characterResolvers = class characterResolvers {
             }
             catch (err) {
                 const { code } = err;
-                if (code === '23505') {
-                    const start = err.detail.indexOf('(');
-                    const end = err.detail.indexOf(')');
+                if (code === "23505") {
+                    const start = err.detail.indexOf("(");
+                    const end = err.detail.indexOf(")");
                     return {
                         errors: [
                             {
                                 field: err.detail.substring(start + 1, end),
-                                message: 'Already exist!',
+                                message: "Already exist!",
                             },
                         ],
                     };
@@ -108,10 +106,10 @@ let characterResolvers = class characterResolvers {
         return __awaiter(this, void 0, void 0, function* () {
             const characters = yield typeorm_1.getConnection()
                 .createQueryBuilder()
-                .select('character')
-                .from(Character_1.Character, 'character')
-                .leftJoinAndSelect('character.movieCharacters', 'movieCharacters')
-                .leftJoinAndSelect('movieCharacters.movie', 'movies')
+                .select("character")
+                .from(Character_1.Character, "character")
+                .leftJoinAndSelect("character.movieCharacters", "movieCharacters")
+                .leftJoinAndSelect("movieCharacters.movie", "movies")
                 .getMany();
             if (!characters) {
                 return {
@@ -130,8 +128,8 @@ let characterResolvers = class characterResolvers {
 };
 __decorate([
     type_graphql_1.Mutation(() => CharacterResponse),
-    __param(0, type_graphql_1.Arg('username')),
-    __param(1, type_graphql_1.Arg('photo', () => graphql_upload_1.GraphQLUpload)),
+    __param(0, type_graphql_1.Arg("username")),
+    __param(1, type_graphql_1.Arg("photo", () => graphql_upload_1.GraphQLUpload)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
