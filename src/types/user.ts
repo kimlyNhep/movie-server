@@ -20,6 +20,15 @@ export class LoginResponse {
 }
 
 @ObjectType()
+export class UserUpdatedResponse {
+  @Field(() => Boolean)
+  ok: boolean;
+
+  @Field(() => String)
+  message: string;
+}
+
+@ObjectType()
 export class UsersResponse {
   @Field(() => [User], { nullable: true })
   users?: User[];

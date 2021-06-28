@@ -1,34 +1,35 @@
-import "reflect-metadata";
-import dotenv from "dotenv";
-import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
+import 'reflect-metadata';
+import dotenv from 'dotenv';
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
 // import { accessToken } from "./token";
 // import { User } from "./entity/User";
 // import { verify } from "jsonwebtoken";
-import { MovieContext } from "./MovieContext";
-import { createConnection } from "typeorm";
-import { ApolloServer } from "apollo-server-express";
-import { buildSchema } from "type-graphql";
+import { MovieContext } from './MovieContext';
+import { createConnection, getConnectionOptions } from 'typeorm';
+import { ApolloServer } from 'apollo-server-express';
+import { buildSchema } from 'type-graphql';
 // import { sendRefreshToken } from "./sendRefreshToken";
-import { graphqlUploadExpress } from "graphql-upload";
-import { uploadResolver } from "./resolver/uploadResolvers";
-import { genreResolvers } from "./resolver/genreResolvers";
-import { userResolvers } from "./resolver/userResolvers";
-import { movieResolvers } from "./resolver/movieResolvers";
-import { ratingResolvers } from "./resolver/ratingResolvers";
-import { characterResolvers } from "./resolver/characterResolvers";
-import { movieInfoResolvers } from "./resolver/movieInfoResolvers";
-import { commentResolvers } from "./resolver/commentResolvers";
-import { movieStateResolvers } from "./resolver/movieStateResolvers";
+import { graphqlUploadExpress } from 'graphql-upload';
+import { uploadResolver } from './resolver/uploadResolvers';
+import { genreResolvers } from './resolver/genreResolvers';
+import { userResolvers } from './resolver/userResolvers';
+import { movieResolvers } from './resolver/movieResolvers';
+import { ratingResolvers } from './resolver/ratingResolvers';
+import { characterResolvers } from './resolver/characterResolvers';
+import { movieInfoResolvers } from './resolver/movieInfoResolvers';
+import { commentResolvers } from './resolver/commentResolvers';
+import { movieStateResolvers } from './resolver/movieStateResolvers';
 
 const app = async () => {
   dotenv.config();
   const app = express();
 
   const allowedDomains = [
-    "http://localhost:3000",
-    "https://elegant-turing-5a0a50.netlify.app",
+    'http://localhost:3000',
+    'https://elegant-turing-5a0a50.netlify.app',
+    'https://studio.apollographql.com',
   ];
   app.use(cookieParser());
   app.use(
@@ -51,9 +52,9 @@ const app = async () => {
       maxFiles: 20,
     })
   );
-  app.use(express.static("public"));
-  app.use("/images", express.static("images"));
-  app.get("/", (_req, res) => res.send("Hello"));
+  app.use(express.static('public'));
+  app.use('/images', express.static('images'));
+  app.get('/', (_req, res) => res.send('Hello'));
 
   // app.post("/refresh_token", async (req, res) => {
   //   const token = req.cookies.token;
@@ -75,16 +76,14 @@ const app = async () => {
   // });
 
   try {
-    // let connectionOptions = await getConnectionOptions();
+    let connectionOptions = await getConnectionOptions();
 
-    // console.log(process.env.NODE_ENV);
+    if (process.env.NODE_ENV === 'production')
+      connectionOptions = await getConnectionOptions('production');
+    else connectionOptions = await getConnectionOptions('default');
+    connectionOptions = await getConnectionOptions('default');
 
-    // if (process.env.NODE_ENV === "production")
-    //   connectionOptions = await getConnectionOptions("production");
-    // else connectionOptions = await getConnectionOptions("default");
-    // connectionOptions = await getConnectionOptions("default");
-
-    await createConnection();
+    await createConnection(connectionOptions);
 
     // await createConnection({
     //   type: 'postgres',
@@ -108,6 +107,7 @@ const app = async () => {
     // });
 
     const apolloServer = new ApolloServer({
+      introspection: true,
       schema: await buildSchema({
         resolvers: [
           userResolvers,
@@ -131,7 +131,7 @@ const app = async () => {
     });
 
     app.listen(process.env.PORT, () => {
-      console.log("Express server stated");
+      console.log('Express server stated');
     });
   } catch (err) {
     console.log(err);

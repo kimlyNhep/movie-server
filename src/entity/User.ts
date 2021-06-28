@@ -67,6 +67,7 @@ export class User extends BaseEntity {
   })
   movieState?: MovieState[];
 
+  @Field()
   @CreateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP(6)',

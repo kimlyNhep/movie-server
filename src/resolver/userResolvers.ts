@@ -1,16 +1,17 @@
-import { GraphQLUpload, FileUpload } from "graphql-upload";
-import { UserRoles } from "./../enumType";
+import { GraphQLUpload, FileUpload } from 'graphql-upload';
+import { UserRoles } from './../enumType';
 import {
   LoginResponse,
   RegisterResponse,
   UserLoginInput,
   UserRegisterInput,
-} from "./../types/user";
-import { sendRefreshToken } from "./../sendRefreshToken";
-import { isAuth } from "./../middleware/auth";
-import { accessToken } from "./../token";
-import { MovieContext } from "./../MovieContext";
-import { User } from "./../entity/User";
+  UserUpdatedResponse,
+} from './../types/user';
+import { sendRefreshToken } from './../sendRefreshToken';
+import { isAuth } from './../middleware/auth';
+import { accessToken } from './../token';
+import { MovieContext } from './../MovieContext';
+import { User } from './../entity/User';
 import {
   Arg,
   Mutation,
@@ -20,11 +21,11 @@ import {
   UseMiddleware,
   ObjectType,
   Field,
-} from "type-graphql";
-import { compare, hash } from "bcryptjs";
-import { validate } from "class-validator";
-import { getManager, getRepository } from "typeorm";
-import { uploadToGoogleDrive } from "../utils/helper";
+} from 'type-graphql';
+import { compare, hash } from 'bcryptjs';
+import { validate } from 'class-validator';
+import { getConnection, getManager, getRepository } from 'typeorm';
+import { uploadToGoogleDrive } from '../utils/helper';
 
 @ObjectType()
 class NumberUserType {
@@ -54,8 +55,8 @@ export class userResolvers {
   @Mutation(() => RegisterResponse)
   async register(
     @Ctx() { res }: MovieContext,
-    @Arg("options") options: UserRegisterInput,
-    @Arg("photo", () => GraphQLUpload, { nullable: true }) photo?: FileUpload
+    @Arg('options') options: UserRegisterInput,
+    @Arg('photo', () => GraphQLUpload, { nullable: true }) photo?: FileUpload
   ): Promise<RegisterResponse> {
     const hashedPassword = await hash(options.password, 12);
 
@@ -67,7 +68,7 @@ export class userResolvers {
         url = urlResponse.url;
       } else {
         url =
-          "https://drive.google.com/uc?export=download&id=1pgPBdC3-qZP_rjXN86Lv0TZQex3VEZBT";
+          'https://drive.google.com/uc?export=download&id=1pgPBdC3-qZP_rjXN86Lv0TZQex3VEZBT';
       }
 
       const user = new User();
@@ -100,14 +101,14 @@ export class userResolvers {
     } catch (err) {
       const { code } = err;
 
-      if (code === "23505") {
-        const start = err.detail.indexOf("(");
-        const end = err.detail.indexOf(")");
+      if (code === '23505') {
+        const start = err.detail.indexOf('(');
+        const end = err.detail.indexOf(')');
         return {
           errors: [
             {
               field: err.detail.substring(start + 1, end),
-              message: "Already exist!",
+              message: 'Already exist!',
             },
           ],
         };
@@ -120,7 +121,7 @@ export class userResolvers {
 
   @Mutation(() => LoginResponse)
   async login(
-    @Arg("options") options: UserLoginInput,
+    @Arg('options') options: UserLoginInput,
     @Ctx() { res }: MovieContext
   ): Promise<LoginResponse> {
     const user = await User.findOne({ where: { username: options.username } });
@@ -129,8 +130,8 @@ export class userResolvers {
       return {
         errors: [
           {
-            field: "username",
-            message: "User not exist",
+            field: 'username',
+            message: 'User not exist',
           },
         ],
       };
@@ -142,8 +143,8 @@ export class userResolvers {
       return {
         errors: [
           {
-            field: "password",
-            message: "is Not Correct.",
+            field: 'password',
+            message: 'is Not Correct.',
           },
         ],
       };
@@ -160,8 +161,43 @@ export class userResolvers {
   @Mutation(() => Boolean)
   logout(@Ctx() { res }: MovieContext) {
     return new Promise((resolve) => {
-      res.clearCookie("token");
+      res.clearCookie('token');
       resolve(true);
     });
+  }
+
+  @Mutation(() => UserUpdatedResponse)
+  @UseMiddleware(isAuth)
+  async uploadProfile(
+    @Ctx() { payload }: MovieContext,
+    @Arg('photo', () => GraphQLUpload) photo: FileUpload
+  ): Promise<UserUpdatedResponse> {
+    const user = await User.findOne({
+      where: { id: payload?.id },
+    });
+
+    if (!user)
+      return {
+        ok: false,
+        message: "user doesn't exist",
+      };
+
+    const urlResponse = await uploadToGoogleDrive(photo);
+
+    user.photo = urlResponse.url;
+
+    try {
+      await getConnection().manager.save(user);
+      return {
+        ok: true,
+        message: 'user updated successful',
+      };
+    } catch (e) {
+      console.log(e);
+      return {
+        ok: false,
+        message: 'cannot updated user',
+      };
+    }
   }
 }

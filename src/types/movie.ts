@@ -50,6 +50,18 @@ export class MovieResponse {
 }
 
 @ObjectType()
+export class MovieResponseWithPermission {
+  @Field(() => Movie, { nullable: true })
+  movie?: Movie;
+
+  @Field(() => Boolean, { nullable: true })
+  isOwner?: boolean;
+
+  @Field(() => [ErrorResponse], { nullable: true })
+  errors?: ErrorResponse[];
+}
+
+@ObjectType()
 export class MoviesResponse {
   @Field(() => [Movie], { nullable: true })
   movies?: Movie[];
