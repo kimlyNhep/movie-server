@@ -1,7 +1,4 @@
-import {
-  MovieStateResponse,
-  UserMovieStateResponse,
-} from './../types/movieState';
+import { MovieStateResponse, UserMovieStateResponse } from './../types/movieState';
 import { MovieStateType } from './../enumType';
 import { getConnection } from 'typeorm';
 import { MovieState } from './../entity/MovieState';
@@ -9,14 +6,7 @@ import { MovieContext } from './../MovieContext';
 import { isAuth } from './../middleware/auth';
 import { User } from './../entity/User';
 import { Movie } from './../entity/Movie';
-import {
-  Mutation,
-  Resolver,
-  UseMiddleware,
-  Arg,
-  Ctx,
-  Query,
-} from 'type-graphql';
+import { Mutation, Resolver, UseMiddleware, Arg, Ctx, Query } from 'type-graphql';
 
 @Resolver()
 export class movieStateResolvers {
@@ -42,9 +32,7 @@ export class movieStateResolvers {
 
   @Query(() => UserMovieStateResponse)
   @UseMiddleware(isAuth)
-  async getMovieState(
-    @Ctx() { payload }: MovieContext
-  ): Promise<UserMovieStateResponse> {
+  async getMovieState(@Ctx() { payload }: MovieContext): Promise<UserMovieStateResponse> {
     const movieStates = await getConnection()
       .createQueryBuilder(MovieState, 'movieState')
       .where('movieState.userId = :uid', { uid: payload?.id })
@@ -148,8 +136,6 @@ export class movieStateResolvers {
         user,
       };
     } catch (err) {
-      console.log(err);
-
       return {
         errors: [
           {

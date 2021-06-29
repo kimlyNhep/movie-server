@@ -138,4 +138,4 @@ const app = async () => {
   }
 };
 
-app().catch((err) => console.log(err));
+app().catch((err) => console.warn(err));

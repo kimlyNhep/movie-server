@@ -44,9 +44,7 @@ export class userResolvers {
 
   @Query(() => NumberUserType)
   async getTotalUsers(): Promise<NumberUserType> {
-    const numberOfUser = await getRepository(User)
-      .createQueryBuilder()
-      .getCount();
+    const numberOfUser = await getRepository(User).createQueryBuilder().getCount();
     return {
       total: numberOfUser,
     };
@@ -67,8 +65,7 @@ export class userResolvers {
         const urlResponse = await uploadToGoogleDrive(photo);
         url = urlResponse.url;
       } else {
-        url =
-          'https://drive.google.com/uc?export=download&id=1pgPBdC3-qZP_rjXN86Lv0TZQex3VEZBT';
+        url = 'https://drive.google.com/uc?export=download&id=1pgPBdC3-qZP_rjXN86Lv0TZQex3VEZBT';
       }
 
       const user = new User();
@@ -193,7 +190,6 @@ export class userResolvers {
         message: 'user updated successful',
       };
     } catch (e) {
-      console.log(e);
       return {
         ok: false,
         message: 'cannot updated user',

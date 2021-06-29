@@ -5,16 +5,7 @@ import { User } from '../entity/User';
 import { isAuth } from '../middleware/auth';
 import { MovieContext } from '../MovieContext';
 import { MovieResponse } from '../types/movie';
-import {
-  Mutation,
-  Resolver,
-  UseMiddleware,
-  InputType,
-  Field,
-  Ctx,
-  Int,
-  Arg,
-} from 'type-graphql';
+import { Mutation, Resolver, UseMiddleware, InputType, Field, Ctx, Int, Arg } from 'type-graphql';
 
 @InputType()
 export class RatingInput {
@@ -90,8 +81,6 @@ export class ratingResolvers {
         return totalPoint + point.ratedPoint;
       }, 0);
 
-      console.log('Total Rated Point : ', totalRatedPoint);
-
       newMovie.point = Number(totalRatedPoint);
 
       await queryRunner.manager.save(newMovie);
@@ -122,8 +111,6 @@ export class ratingResolvers {
         movie: newMovie,
       };
     } catch (err) {
-      console.log(err);
-
       await queryRunner.rollbackTransaction();
 
       return {

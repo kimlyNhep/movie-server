@@ -42,10 +42,6 @@ export class movieResolvers {
     }
 
     if (movie.creator.id !== payload?.id) {
-      console.log('User ID : ', payload?.id);
-
-      console.log('Creator ID : ', movie.creator.id);
-
       return {
         errors: [
           {
@@ -82,9 +78,6 @@ export class movieResolvers {
         };
     }
 
-    console.log('Characters : ', characters);
-    console.log('Option : ', options.characters);
-
     const characterWithRole = characters
       ?.map((item) =>
         options.characters?.map((character) => {
@@ -93,8 +86,6 @@ export class movieResolvers {
         })
       )
       .flatMap((item) => item?.filter((c) => c !== null));
-
-    console.log('Character With Role : ', characterWithRole);
 
     movie.title = options.title;
     movie.description = options.description;

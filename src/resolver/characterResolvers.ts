@@ -1,17 +1,10 @@
-import { ErrorResponse } from "./../types/error";
-import { validate } from "class-validator";
-import { uploadToGoogleDrive } from "./../utils/helper";
-import { Character } from "./../entity/Character";
-import { GraphQLUpload, FileUpload } from "graphql-upload";
-import {
-  Mutation,
-  Resolver,
-  Arg,
-  ObjectType,
-  Field,
-  Query,
-} from "type-graphql";
-import { getConnection, getManager } from "typeorm";
+import { ErrorResponse } from './../types/error';
+import { validate } from 'class-validator';
+import { uploadToGoogleDrive } from './../utils/helper';
+import { Character } from './../entity/Character';
+import { GraphQLUpload, FileUpload } from 'graphql-upload';
+import { Mutation, Resolver, Arg, ObjectType, Field, Query } from 'type-graphql';
+import { getConnection, getManager } from 'typeorm';
 
 @ObjectType()
 export class CharacterResponse {
@@ -35,8 +28,8 @@ export class CharactersResponse {
 export class characterResolvers {
   @Mutation(() => CharacterResponse)
   async createCharacter(
-    @Arg("username") username: string,
-    @Arg("photo", () => GraphQLUpload) photo: FileUpload
+    @Arg('username') username: string,
+    @Arg('photo', () => GraphQLUpload) photo: FileUpload
   ): Promise<CharacterResponse> {
     try {
       const urlResponse = await uploadToGoogleDrive(photo);
@@ -64,14 +57,14 @@ export class characterResolvers {
     } catch (err) {
       const { code } = err;
 
-      if (code === "23505") {
-        const start = err.detail.indexOf("(");
-        const end = err.detail.indexOf(")");
+      if (code === '23505') {
+        const start = err.detail.indexOf('(');
+        const end = err.detail.indexOf(')');
         return {
           errors: [
             {
               field: err.detail.substring(start + 1, end),
-              message: "Already exist!",
+              message: 'Already exist!',
             },
           ],
         };
@@ -86,10 +79,10 @@ export class characterResolvers {
   async getAllCharacter(): Promise<CharactersResponse> {
     const characters = await getConnection()
       .createQueryBuilder()
-      .select("character")
-      .from(Character, "character")
-      .leftJoinAndSelect("character.movieCharacters", "movieCharacters")
-      .leftJoinAndSelect("movieCharacters.movie", "movies")
+      .select('character')
+      .from(Character, 'character')
+      .leftJoinAndSelect('character.movieCharacters', 'movieCharacters')
+      .leftJoinAndSelect('movieCharacters.movie', 'movies')
       .getMany();
 
     if (!characters) {
