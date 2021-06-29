@@ -13,7 +13,8 @@
    * connect to database
    * provide access to user (Run `ALTER ROLE movie_admin WITH LOGIN;`)
    * Run `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`
-3. Then run `yarn typeorm migration:run` command
-4. Run `yarn dev` command
+3. Run `yarn install or npm install`
+4. Then run `yarn typeorm migration:run` command
+5. Run `yarn dev` command
 
 repo: https://github.com/kimlyNhep/movie-server.git
